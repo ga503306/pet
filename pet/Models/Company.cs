@@ -9,6 +9,12 @@ namespace pet.Models
     [Table("Company")]
     public partial class Company
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Company()
+        {
+            Room = new HashSet<Room>();
+        }
+
         [Key]
         [StringLength(20)]
         public string companyseq { get; set; }
@@ -90,5 +96,8 @@ namespace pet.Models
         public string updatename { get; set; }
 
         public DateTime? updateday { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Room> Room { get; set; }
     }
 }

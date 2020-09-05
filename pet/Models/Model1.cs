@@ -14,7 +14,7 @@ namespace pet.Models
 
         public virtual DbSet<Company> Company { get; set; }
         public virtual DbSet<Member> Member { get; set; }
-
+        public virtual DbSet<Room> Room { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
         }
