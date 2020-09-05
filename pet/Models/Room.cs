@@ -1,5 +1,6 @@
 namespace pet.Models
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
@@ -94,6 +95,15 @@ namespace pet.Models
 
         public DateTime? updateday { get; set; }
 
+        public string img1 { get; set; }
+
+        public string img2 { get; set; }
+
+        public string img3 { get; set; }
+
+        public string img4 { get; set; }
+
+        [JsonIgnore]
         public virtual Company Company { get; set; }
     }
 }
