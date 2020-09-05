@@ -57,8 +57,7 @@ namespace pet.Models
 
         public DateTime? effectivedate { get; set; }
 
-        [StringLength(1)]
-        public string state { get; set; }
+        public bool? state { get; set; }
 
         public string avatar { get; set; }
 
@@ -69,17 +68,13 @@ namespace pet.Models
 
         public string introduce { get; set; }
 
-        [StringLength(5)]
-        public string morning { get; set; }
+        public bool? morning { get; set; }
 
-        [StringLength(5)]
-        public string afternoon { get; set; }
+        public bool? afternoon { get; set; }
 
-        [StringLength(5)]
-        public string night { get; set; }
+        public bool? night { get; set; }
 
-        [StringLength(5)]
-        public string midnight { get; set; }
+        public bool? midnight { get; set; }
 
         [StringLength(20)]
         public string postseq { get; set; }

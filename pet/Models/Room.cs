@@ -22,14 +22,11 @@ namespace pet.Models
 
         public string introduce { get; set; }
 
-        [StringLength(1)]
-        public string pettype_cat { get; set; }
+        public bool? pettype_cat { get; set; }
 
-        [StringLength(1)]
-        public string pettype_dog { get; set; }
+        public bool? pettype_dog { get; set; }
 
-        [StringLength(1)]
-        public string pettype_other { get; set; }
+        public bool? pettype_other { get; set; }
 
         public int? petsizes { get; set; }
 
@@ -43,50 +40,39 @@ namespace pet.Models
 
         public int? walk { get; set; }
 
-        [StringLength(1)]
-        public string canned { get; set; }
+        public bool? canned { get; set; }
 
-        [StringLength(1)]
-        public string feed { get; set; }
+        public bool? feed { get; set; }
 
-        [StringLength(1)]
-        public string catlitter { get; set; }
+        public bool? catlitter { get; set; }
 
         public int? visit { get; set; }
 
-        [StringLength(1)]
-        public string medicine_infeed { get; set; }
+        public bool? medicine_infeed { get; set; }
 
         public int? medicine_infeed_amt { get; set; }
 
-        [StringLength(1)]
-        public string medicine_pill { get; set; }
+        public bool? medicine_pill { get; set; }
 
         public int? medicine_pill_amt { get; set; }
 
-        [StringLength(1)]
-        public string medicine_paste { get; set; }
+        public bool? medicine_paste { get; set; }
 
         public int? medicine_paste_amt { get; set; }
 
-        [StringLength(1)]
-        public string bath { get; set; }
+        public bool? bath { get; set; }
 
         public int? bath_amt { get; set; }
 
-        [StringLength(1)]
-        public string hair { get; set; }
+        public bool? hair { get; set; }
 
         public int? hair_amt { get; set; }
 
-        [StringLength(1)]
-        public string nails { get; set; }
+        public bool? nails { get; set; }
 
         public int? nails_amt { get; set; }
 
-        [Required]
-        [StringLength(1)]
-        public string state { get; set; }
+        public Roomstate state { get; set; }
 
         [Required]
         [StringLength(1)]
