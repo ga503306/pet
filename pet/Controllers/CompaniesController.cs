@@ -146,10 +146,10 @@ namespace pet.Controllers
                     {
                         Company company = db.Company.Find(userseq);
                         company.introduce = companyPatch.introduce;
-                        company.morning = Convert.ToInt32(Convert.ToBoolean(companyPatch.morning)).ToString(); //true轉1 false轉0
-                        company.afternoon = Convert.ToInt32(Convert.ToBoolean(companyPatch.afternoon)).ToString();
-                        company.night = Convert.ToInt32(Convert.ToBoolean(companyPatch.night)).ToString();
-                        company.midnight = Convert.ToInt32(Convert.ToBoolean(companyPatch.midnight)).ToString();
+                        company.morning = Convert.ToBoolean(companyPatch.morning);
+                        company.afternoon = Convert.ToBoolean(companyPatch.afternoon);
+                        company.night = Convert.ToBoolean(companyPatch.night);
+                        company.midnight = Convert.ToBoolean(companyPatch.midnight);
                         company.bannerimg = companyPatch.bannerimg;
                         db.Entry(company).State = EntityState.Modified;
                         db.SaveChanges();
@@ -201,7 +201,7 @@ namespace pet.Controllers
                     int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.companyseq.Substring(9, 4)));//流水號
 
                     Company company = new Company();
-                    company.companyseq = "C" + DateTime.Now.ToString("yyyyMMdd") + seq;
+                    company.companyseq = "C" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
                     company.companyname = companyRegisterModel.companyname;
                     company.companybrand = companyRegisterModel.companybrand;
                     company.phone = companyRegisterModel.phone;
@@ -214,7 +214,7 @@ namespace pet.Controllers
                     company.pblicense = companyRegisterModel.pblicense;
                     company.effectivedate = companyRegisterModel.effectivedate;
                     company.avatar = companyRegisterModel.avatar;
-                    company.state = "1"; //狀態1 通過
+                    company.state = true; //狀態1 通過
                     company.del_flag = "N";
                     db.Company.Add(company);
                     db.SaveChanges();
