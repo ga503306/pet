@@ -149,7 +149,61 @@ namespace pet.Controllers
             return Ok(room);
         }
 
-        
+        // Post: api/Room/Create
+        [JwtAuthFilter]
+        [Route("Create")]
+        [HttpPost]
+        public IHttpActionResult Create(Room room)
+        {
+            string error_message = "Create，請至伺服器log查詢錯誤訊息";
+            try
+            {
+                //拿已登入的流水
+                string token = Request.Headers.Authorization.Parameter;
+                JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+                string userseq = jwtAuthUtil.Getuserseq(token);
+                //必填欄位
+                room.companyseq = userseq;//必填欄位
+                room.del_flag = "N";
+                room.state = Roomstate.已上架;
+                //重新驗證model
+                ModelState.Clear();
+                Validate(room);
+                using (var transaction1 = db.Database.BeginTransaction((System.Data.IsolationLevel.RepeatableRead)))
+                {
+                    string today = DateTime.Now.ToString("yyyyMMdd");
+                    Room getseq = db.Room.Where(x => x.roomseq.Contains(today)).OrderByDescending(x => x.roomseq).FirstOrDefault();
+                    int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.roomseq.Substring(9, 4)));//流水號
+                    room.roomseq = "R" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
+                    if (ModelState.IsValid)
+                    {
+                        db.Room.Add(room);
+                        db.SaveChanges();
+                        transaction1.Commit();
+                    }
+                    else
+                    {
+                        return Ok(new
+                        {
+                            result = ModelState
+                        });
+                    }
+                }
+                return Ok(new
+                {
+                    result = "上架成功"
+                });
+            }
+            catch (Exception ex)
+            {
+                Utility.log("廠商上架", ex.ToString());
+                return Ok(new
+                {
+                    result = error_message
+                });
+            }
+
+        }
 
        
 
