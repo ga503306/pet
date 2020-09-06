@@ -205,7 +205,51 @@ namespace pet.Controllers
 
         }
 
-       
+        // Patch: api/Room/Edit
+        [JwtAuthFilter]
+        [Route("Edit")]
+        [HttpPatch]
+        public IHttpActionResult Edit(Room room)
+        {
+            string error_message = "patch錯誤，請至伺服器log查詢錯誤訊息";
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
+
+            try
+            {
+                room.companyseq = userseq;
+                room.del_flag = "N";//如果刪除的話 應該也不會進來編輯
+                //重新驗證model
+                ModelState.Clear();
+                Validate(room);
+
+                db.Room.Attach(room);
+                foreach (PropertyInfo p in room.GetType().GetProperties())
+                {
+                    if (p.GetValue(room) != null)
+                    {
+                        db.Entry<Room>(room).Property(p.Name).IsModified = true;
+                    }
+                }
+
+                db.SaveChanges();
+            }
+            catch (Exception ex)//失敗
+            {
+                Utility.log("PatchRoomEdit", ex.ToString());
+                return Ok(new
+                {
+                    result = error_message//修改失敗
+                });
+            }
+            return Ok(new
+            {
+                result = "修改成功"
+            });
+        }
+
+      
 
         protected override void Dispose(bool disposing)
         {
