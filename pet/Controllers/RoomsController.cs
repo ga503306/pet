@@ -277,7 +277,36 @@ namespace pet.Controllers
             });
         }
 
-       
+        // Post: api/Room/StateUpdate
+        [JwtAuthFilter]
+        [Route("StateUpdate")]
+        [HttpPost]
+        public IHttpActionResult StateUpdate(string id)
+        {
+            string error_message = "update錯誤，請至伺服器log查詢錯誤訊息";
+            try
+            {
+                Room room = db.Room.Find(id);
+                if (room.state == Roomstate.已上架)
+                    room.state = Roomstate.未上架;
+                else
+                    room.state = Roomstate.已上架;
+                db.Entry(room).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Utility.log("PatchRoomupdate", ex.ToString());
+                return Ok(new
+                {
+                    result = error_message//修改失敗
+                });
+            }
+            return Ok(new
+            {
+                result = "更新成功"
+            });
+        }
 
         protected override void Dispose(bool disposing)
         {
