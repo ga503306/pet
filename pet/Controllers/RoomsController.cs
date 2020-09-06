@@ -249,7 +249,35 @@ namespace pet.Controllers
             });
         }
 
-      
+        // Delete: api/Room/Delete
+        [JwtAuthFilter]
+        [Route("Delete")]
+        [HttpDelete]
+        public IHttpActionResult Delete(string id)
+        {
+            string error_message = "delete錯誤，請至伺服器log查詢錯誤訊息";
+            try
+            {
+                Room room = db.Room.Find(id);
+                room.del_flag = "Y";
+                db.Entry(room).State = EntityState.Modified;
+                db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                Utility.log("PatchRoomdelete", ex.ToString());
+                return Ok(new
+                {
+                    result = error_message//修改失敗
+                });
+            }
+            return Ok(new
+            {
+                result = "刪除成功"
+            });
+        }
+
+       
 
         protected override void Dispose(bool disposing)
         {
