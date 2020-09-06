@@ -109,7 +109,49 @@ namespace pet.Controllers
             }
             return Ok(roomModel);
         }
+        // Get: api/Room/GetRooms //用在廠商後台 顯示廠商所有房間
+        [JwtAuthFilter]
+        [Route("GetRooms")]
+        [HttpGet]
+        public IHttpActionResult GetRooms()
+        {
+            List<RoomModel> roomModel = new List<RoomModel>();
+            List<Room> room = db.Room.Where(x => x.del_flag == "N").ToList();
+            foreach (Room r in room)
+            {
+                RoomModel roomModel_ = new RoomModel();
+                roomModel_.companyseq = r.companyseq;
+                Company company = db.Company.Find(r.companyseq);//廠商暫存
+                roomModel_.companybrand = company.companybrand;
+                roomModel_.avatar = company.avatar;
+                roomModel_.country = company.country;
+                roomModel_.area = company.area;
+                roomModel_.address = company.address;
+                if (r.pettype_cat.Value)
+                    roomModel_.pettype += "貓咪 ";
+                if (r.pettype_dog.Value)
+                    roomModel_.pettype += "狗 ";
+                if (r.pettype_other.Value)
+                    roomModel_.pettype += "其他 ";
+                roomModel_.roomprice = r.roomprice;
+                roomModel.Add(roomModel_);
+            }
+            return Ok(roomModel);
+        }
+
+        // Get: api/Room/GetRooms/5
+        [JwtAuthFilter]
+        [HttpGet]
+        [Route("GetRooms")]
+        public IHttpActionResult GetRooms(string id)
+        {
+            Room room = db.Room.Find(id);
+            return Ok(room);
+        }
+
         
+
+       
 
         protected override void Dispose(bool disposing)
         {
