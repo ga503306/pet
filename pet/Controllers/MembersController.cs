@@ -79,7 +79,7 @@ namespace pet.Controllers
                         member.phone = memberRegisterModel.phone;
                         member.email = memberRegisterModel.email;
                         member.pwdsalt = Utility.CreateSalt(); ;
-                        member.pwd = Utility.GenerateHashWithSalt(HttpContext.Current.Request.Form["pwd"], member.pwdsalt);
+                        member.pwd = Utility.GenerateHashWithSalt(memberRegisterModel.pwd, member.pwdsalt);
                         member.del_flag = "N";
                         member.avatar = memberRegisterModel.avatar;
                         db.Member.Add(member);
@@ -161,6 +161,32 @@ namespace pet.Controllers
             return Ok(new
             {
                 result = "信箱或是密碼輸入格式有誤"
+            });
+        }
+
+        // Patch: api/Member/Resetpwd
+        [JwtAuthFilter]
+        [HttpPatch]
+        [Route("Resetpwd")]
+        public IHttpActionResult Resetpwd(Member member_)
+        {
+            if(string.IsNullOrWhiteSpace(member_.pwd))
+            {
+                return Ok(new
+                {
+                    result = "密碼不能為空或空白"
+                });
+            }
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
+            Member member = db.Member.Find(userseq);
+            member.pwd = Utility.GenerateHashWithSalt(member_.pwd, member.pwdsalt);
+            db.Entry(member).State = EntityState.Modified;
+            db.SaveChanges();
+            return Ok(new
+            {
+                result = "修改成功"
             });
         }
 

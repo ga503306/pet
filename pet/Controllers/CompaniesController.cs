@@ -179,6 +179,32 @@ namespace pet.Controllers
             }
         }
 
+        // Patch: api/Company/Resetpwd
+        [JwtAuthFilter]
+        [HttpPatch]
+        [Route("Resetpwd")]
+        public IHttpActionResult Resetpwd(Company company_)
+        {
+            if (string.IsNullOrWhiteSpace(company_.pwd))
+            {
+                return Ok(new
+                {
+                    result = "密碼不能為空或空白"
+                });
+            }
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
+            Company company = db.Company.Find(userseq);
+            company.pwd = Utility.GenerateHashWithSalt(company_.pwd, company.pwdsalt);
+            db.Entry(company).State = EntityState.Modified;
+            db.SaveChanges();
+            return Ok(new
+            {
+                result = "修改成功"
+            });
+        }
+
         // Post: api/Company/Register
         [Route("Register")]
         [HttpPost]
