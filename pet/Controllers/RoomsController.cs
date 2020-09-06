@@ -80,7 +80,37 @@ namespace pet.Controllers
 
             return Ok(roomCompanyModels);
         }
+        // Get: api/Room/GetRoomslist //用在廠商頁 只顯示已上架
+        [JwtAuthFilter]
+        [Route("GetRoomslist")]
+        [HttpGet]
+        public IHttpActionResult GetRoomslist()
+        {
+            List<RoomModel> roomModel = new List<RoomModel>();
+            List<Room> room = db.Room.Where(x => x.del_flag == "N" && x.state == Roomstate.已上架).ToList();
+            foreach (Room r in room)
+            {
+                RoomModel roomModel_ = new RoomModel();
+                roomModel_.companyseq = r.companyseq;
+                Company company = db.Company.Find(r.companyseq);//廠商暫存
+                roomModel_.companybrand = company.companybrand;
+                roomModel_.avatar = company.avatar;
+                roomModel_.country = company.country;
+                roomModel_.area = company.area;
+                roomModel_.address = company.address;
+                if (r.pettype_cat.Value)
+                    roomModel_.pettype += "貓咪 ";
+                if (r.pettype_dog.Value)
+                    roomModel_.pettype += "狗 ";
+                if (r.pettype_other.Value)
+                    roomModel_.pettype += "其他 ";
+                roomModel_.roomprice = r.roomprice;
+                roomModel.Add(roomModel_);
+            }
+            return Ok(roomModel);
+        }
         
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
