@@ -71,13 +71,13 @@ namespace pet.Controllers
             companyGetone.pblicense = company.pblicense;
             if (company.effectivedate.HasValue)
                 companyGetone.effectivedate = Convert.ToDateTime(company.effectivedate.Value).ToString("yyyy-MM-dd");
-            companyGetone.introduce = company.introduce;
+            companyGetone.introduce = company.introduce is null ? "" : company.introduce;
             companyGetone.morning = Convert.ToBoolean(company.morning);
             companyGetone.afternoon = Convert.ToBoolean(company.afternoon);
             companyGetone.night = Convert.ToBoolean(company.night);
             companyGetone.midnight = Convert.ToBoolean(company.midnight);
-            companyGetone.avatar = company.avatar;
-            companyGetone.bannerimg = company.bannerimg;
+            companyGetone.avatar = company.avatar is null ? "" : company.avatar; ;
+            companyGetone.bannerimg = company.bannerimg is null ? "" : company.bannerimg; ;
             //#region 讀取圖片banner
             //if (!Directory.Exists(HttpContext.Current.Server.MapPath("/") + @"/Images/company_Banner/" + company.companyseq))
             //{
