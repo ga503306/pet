@@ -57,6 +57,13 @@ namespace pet.Controllers
         public IHttpActionResult Register(MemberRegisterModel memberRegisterModel)
         {
             string error_message = "Register錯誤，請至伺服器log查詢錯誤訊息";
+            if (!ModelState.IsValid)
+            {
+                return Ok(new
+                {
+                    result = ModelState
+                });
+            }
             try
             {
                 //信箱重複

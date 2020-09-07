@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,6 +16,7 @@ using System.Web.Http.Description;
 using System.Web.Security;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using pet.Fillter;
 using pet.Filter;
 using pet.Models;
@@ -211,6 +213,35 @@ namespace pet.Controllers
         public IHttpActionResult Register(CompanyRegisterModel companyRegisterModel)
         {
             string error_message = "Register錯誤，請至伺服器log查詢錯誤訊息";
+            //格式
+            if (!ModelState.IsValid)
+            {
+                return Ok(new
+                {
+                    result = "格式錯誤"
+                });
+            }
+            JArray jArray = Utility.getjson("https://paim.coa.gov.tw/api/BusinessList?IsActive=1");
+            bool PBL_flag = false;//證書號是否有在名單上
+            foreach (var item in jArray)
+            {
+                if (item["PBLicense"].ToString() == companyRegisterModel.pblicense) {
+                    if (Convert.ToDateTime(item["EffectiveDate"]) == Convert.ToDateTime(companyRegisterModel.effectivedate))
+                    {
+                        PBL_flag = true;
+                    }
+                    break;
+                }
+            }
+            //證書號
+            if (!PBL_flag)
+            {
+                return Ok(new
+                {
+                    result = "證書號不在合法寵物業者名單上"
+                });
+            }
+           
             try
             {
                 //信箱重複
@@ -245,53 +276,6 @@ namespace pet.Controllers
                     db.Company.Add(company);
                     db.SaveChanges();
                     transaction1.Commit();
-
-
-                    //string today = DateTime.Now.ToString("yyyyMMdd");
-
-                    //try
-                    //{
-                    //    Company getseq = db.Company.Where(x => x.companyseq.Contains(today)).OrderByDescending(x => x.companyseq).FirstOrDefault();
-                    //    int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.companyseq.Substring(9, 4)));//流水號
-                    //    Company company = new Company();
-                    //    company.companyseq = "C" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
-                    //    company.companyname = HttpContext.Current.Request.Form["companyname"];
-                    //    company.companybrand = HttpContext.Current.Request.Form["companybrand"];
-                    //    company.phone = HttpContext.Current.Request.Form["phone"];
-                    //    company.email = HttpContext.Current.Request.Form["email"];
-                    //    company.pwdsalt = Utility.CreateSalt(); ;
-                    //    company.pwd = Utility.GenerateHashWithSalt(HttpContext.Current.Request.Form["pwd"], company.pwdsalt);
-                    //    company.country = HttpContext.Current.Request.Form["country"];
-                    //    company.area = HttpContext.Current.Request.Form["area"];
-                    //    company.address = HttpContext.Current.Request.Form["address"];
-                    //    company.pblicense = HttpContext.Current.Request.Form["pblicense"];
-                    //    company.effectivedate = Convert.ToDateTime(HttpContext.Current.Request.Form["effectivedate"]);
-                    //    company.morning = "0";
-                    //    company.afternoon = "0";
-                    //    company.night = "0";
-                    //    company.midnight = "0";
-                    //    company.state = "1"; //狀態1 通過
-                    //    company.del_flag = "N";
-
-                    //    //處理圖片
-                    //    HttpPostedFile postedFile = HttpContext.Current.Request.Files.Count > 0
-                    //                              ? HttpContext.Current.Request.Files[0]
-                    //                              : null;
-                    //    string filename = "";
-                    //    if (postedFile != null)
-                    //    {
-                    //        filename = Utility.SaveUpImage(postedFile, "company_Avatar", company.companyseq);
-                    //    }
-
-                    //    company.avatar = filename;
-                    //    db.Company.Add(company);
-                    //    db.SaveChanges();
-                    //    transaction1.Commit();
-                    //}
-                    //catch (DbUpdateException)
-                    //{
-                    //    transaction1.Rollback();
-                    //}
                 }
 
                 return Ok(new
@@ -342,7 +326,7 @@ namespace pet.Controllers
 
                     string userData = JsonConvert.SerializeObject(company);
                     JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
-                    string jwtToken = jwtAuthUtil.GenerateToken(companyLoginModel.email,company.companyseq);
+                    string jwtToken = jwtAuthUtil.GenerateToken(companyLoginModel.email, company.companyseq);
 
                     return Ok(new
                     {
@@ -426,7 +410,7 @@ namespace pet.Controllers
                 company.avatar = filename;
                 db.Entry(company).State = EntityState.Modified;
                 db.SaveChanges();
-               
+
                 return Ok(new
                 {
                     result = filename
