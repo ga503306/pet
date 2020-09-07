@@ -115,25 +115,27 @@ namespace pet.Controllers
         [HttpGet]
         public IHttpActionResult GetRooms()
         {
-            List<RoomModel> roomModel = new List<RoomModel>();
-            List<Room> room = db.Room.Where(x => x.del_flag == "N").ToList();
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
+
+            List<RoomBackendModel> roomModel = new List<RoomBackendModel>();
+            List<Room> room = db.Room.Where(x => x.companyseq == userseq && x.del_flag == "N").ToList();
             foreach (Room r in room)
             {
-                RoomModel roomModel_ = new RoomModel();
+                RoomBackendModel roomModel_ = new RoomBackendModel();
                 roomModel_.companyseq = r.companyseq;
-                Company company = db.Company.Find(r.companyseq);//廠商暫存
-                roomModel_.companybrand = company.companybrand;
-                roomModel_.avatar = company.avatar;
-                roomModel_.country = company.country;
-                roomModel_.area = company.area;
-                roomModel_.address = company.address;
+                roomModel_.roomseq = r.roomseq;
+                roomModel_.roomname = r.roomname;
+                roomModel_.state = r.state == Roomstate.已上架 ? true : false;
+                Company company = db.Company.Find(r.companyseq);//暫存廠商
                 if (r.pettype_cat.Value)
-                    roomModel_.pettype += "貓咪 ";
+                    roomModel_.pettype += "貓咪，";
                 if (r.pettype_dog.Value)
-                    roomModel_.pettype += "狗 ";
+                    roomModel_.pettype += "狗，";
                 if (r.pettype_other.Value)
-                    roomModel_.pettype += "其他 ";
-                roomModel_.roomprice = r.roomprice;
+                    roomModel_.pettype += "其他，";
+                roomModel_.pettype = roomModel_.pettype.Remove(roomModel_.pettype.LastIndexOf("，"), 1);
                 roomModel.Add(roomModel_);
             }
             return Ok(roomModel);

@@ -5,7 +5,7 @@ using System.Web;
 
 namespace pet.Models
 {
-    public class RoomModel
+    public class RoomModel //前台
     {
         public string companyseq { get; set; }
 

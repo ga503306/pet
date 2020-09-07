@@ -200,6 +200,7 @@
     <Compile Include="Models\MemberRegisterModel.cs" />
     <Compile Include="Models\Model1.cs" />
     <Compile Include="Models\Room.cs" />
+    <Compile Include="Models\RoomBackendModel.cs" />
     <Compile Include="Models\RoomModel.cs" />
     <Compile Include="Models\RoomCompanyModel.cs" />
     <Compile Include="Models\Utility.cs" />
