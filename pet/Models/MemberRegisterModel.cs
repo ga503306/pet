@@ -17,10 +17,13 @@ namespace pet.Models
         public string phone { get; set; }
 
         [Required]
+        [DataType(DataType.EmailAddress)]
         [MaxLength(200)]
         public string email { get; set; }
 
         [MaxLength(50)]
+        [Required]
+        [DataType(DataType.Password)]
         public string pwd { get; set; }
 
 
