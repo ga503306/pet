@@ -64,50 +64,5 @@ namespace pet.Controllers
             }
 
         }
-
-        // Post: api/UploadimgX //無token
-        [HttpPost]
-        [Route("UploadimgX")]
-        public IHttpActionResult UploadimgX()
-        {
-            string error_message = "Uploadimg錯誤，請至伺服器log查詢錯誤訊息";
-            string userseq = "temp";
-            string filename = null;
-            //string parameter = HttpContext.Current.Request.Form["parameter"]; //company_Avatar //company_Banner
-            try
-            {
-                //處理圖片
-                HttpPostedFile postedFile = HttpContext.Current.Request.Files.Count > 0
-                                          ? HttpContext.Current.Request.Files[0]
-                                          : null;
-                if (postedFile != null)
-                {
-                    string extension = postedFile.FileName.Split('.')[postedFile.FileName.Split('.').Length - 1];
-                    if (String.Compare(extension, "jpg", true) == 0 || String.Compare(extension, "png", true) == 0)
-                    {
-                        filename = Utility.SaveUpImage(postedFile, "", userseq);
-                    }
-                    else
-                    {
-                        error_message = "圖片格式錯誤";
-                        throw new Exception("圖片格式錯誤");
-                    }
-                }
-
-                return Ok(new
-                {
-                    result = filename
-                });
-            }
-            catch (Exception ex)
-            {
-                Utility.log("Patchcompany", ex.ToString());
-                return Ok(new
-                {
-                    result = error_message
-                });
-            }
-
-        }
     }
 }
