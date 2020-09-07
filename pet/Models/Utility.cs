@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.Ajax.Utilities;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -9,6 +12,7 @@ using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Cryptography;
 using System.Text;
@@ -1158,7 +1162,27 @@ namespace WebApplication1.Models
             {
                 Conn.Close();
             }
-        } 
+        }
+        #endregion
+
+        #region 爬api
+        public static JArray getjson(string url)
+        {
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(url); //request請求
+            req.Timeout = 10000; //request逾時時間
+            req.Method = "GET"; //request方式
+            HttpWebResponse respone = (HttpWebResponse)req.GetResponse(); //接收respone
+            StreamReader streamReader = new StreamReader(respone.GetResponseStream(), Encoding.UTF8); //讀取respone資料
+            string result = streamReader.ReadToEnd(); //讀取到最後一行
+            respone.Close();
+            streamReader.Close();
+            //XmlDocument xmlDoc = new XmlDocument();
+            //xmlDoc.LoadXml(result);
+            JObject jsondata = JsonConvert.DeserializeObject<JObject>(result); //將資料轉為json物件
+            JArray json = new JArray();
+            json = JsonConvert.DeserializeObject<JArray>(jsondata["Message"].ToString());
+            return json;
+        }
         #endregion
     }
 }
