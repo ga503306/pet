@@ -73,7 +73,7 @@ namespace pet.Models
 
         public int? nails_amt { get; set; }
 
-        public Roomstate state { get; set; }
+        public bool? state { get; set; }
 
         [Required]
         [StringLength(1)]
