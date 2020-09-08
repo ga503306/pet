@@ -176,6 +176,13 @@ namespace pet.Controllers
                 //重新驗證model
                 ModelState.Clear();
                 Validate(room);
+
+                if (room.pettype_cat is false && room.pettype_dog is false && room.pettype_other is false)
+                {
+                    error_message = "寵物類型至少選一項";
+                    throw new Exception("寵物類型至少選一項");
+                }
+
                 if (ModelState.IsValid)
                 {
                     using (var transaction1 = db.Database.BeginTransaction((System.Data.IsolationLevel.RepeatableRead)))
@@ -233,6 +240,13 @@ namespace pet.Controllers
                 //重新驗證model
                 ModelState.Clear();
                 Validate(room);
+
+                if (room.pettype_cat is false && room.pettype_dog is false && room.pettype_other is false)
+                {
+                    error_message = "寵物類型至少選一項";
+                    throw new Exception("寵物類型至少選一項");
+                }
+
                 db.Room.Attach(room);
                 foreach (PropertyInfo p in room.GetType().GetProperties())
                 {
