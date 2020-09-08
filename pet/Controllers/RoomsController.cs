@@ -128,7 +128,7 @@ namespace pet.Controllers
                 roomModel_.companyseq = r.companyseq;
                 roomModel_.roomseq = r.roomseq;
                 roomModel_.roomname = r.roomname;
-                roomModel_.state = r.state.HasValue;
+                roomModel_.state = r.state.Value;
                 Company company = db.Company.Find(r.companyseq);//暫存廠商
                 if (r.pettype_cat.Value)
                     roomModel_.pettype += "貓咪，";
@@ -191,7 +191,12 @@ namespace pet.Controllers
                         Room getseq = db.Room.Where(x => x.roomseq.Contains(today)).OrderByDescending(x => x.roomseq).FirstOrDefault();
                         int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.roomseq.Substring(9, 4)));//流水號
                         room.roomseq = "R" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
-
+                        room.medicine_infeed_amt = room.medicine_infeed_amt == null ? 0 : room.medicine_infeed_amt.Value;
+                        room.medicine_paste_amt = room.medicine_paste_amt == null ? 0 : room.medicine_paste_amt.Value;
+                        room.medicine_pill_amt = room.medicine_pill_amt == null ? 0 : room.medicine_pill_amt.Value;
+                        room.bath_amt = room.bath_amt == null ? 0 : room.bath_amt.Value;
+                        room.hair_amt = room.hair_amt == null ? 0 : room.hair_amt.Value;
+                        room.nails_amt = room.nails_amt == null ? 0 : room.nails_amt.Value;
                         db.Room.Add(room);
                         db.SaveChanges();
                         transaction1.Commit();
