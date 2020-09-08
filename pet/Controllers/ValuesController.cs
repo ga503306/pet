@@ -16,6 +16,8 @@ namespace pet.Controllers
     [RoutePrefix("api")]
     public class ValuesController : ApiController
     {
+        private Model1 db = new Model1();
+
         // Post: api/Uploadimg
         [JwtAuthFilter]
         [HttpPost]
@@ -76,19 +78,25 @@ namespace pet.Controllers
             string token = Request.Headers.Authorization.Parameter;
             JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
             string userseq = jwtAuthUtil.Getuserseq(token);
-            string Identity = null;
+            GetIdentityModel getIdentityModel = new GetIdentityModel();
             try
             {
                 string temp = userseq.Substring(0, 1);
 
                 if (temp == "C")
-                    Identity = "廠商";
+                {
+                    getIdentityModel.identity = "廠商";
+                    getIdentityModel.avatar = db.Company.Find(userseq).avatar;
+                }
                 else
-                    Identity = "會員";
+                {
+                    getIdentityModel.identity = "會員";
+                    getIdentityModel.avatar = db.Member.Find(userseq).avatar;
+                }
 
                 return Ok(new
                 {
-                    result = Identity
+                    result = getIdentityModel
                 });
             }
             catch (Exception ex)

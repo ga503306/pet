@@ -207,6 +207,7 @@
     <Compile Include="Models\CompanyPatch.cs" />
     <Compile Include="Models\CompanyRegisterModel.cs" />
     <Compile Include="Models\Enumlist.cs" />
+    <Compile Include="Models\GetIdentityModel.cs" />
     <Compile Include="Models\Member.cs" />
     <Compile Include="Models\MemberGetone.cs" />
     <Compile Include="Models\MemberRegisterModel.cs" />
