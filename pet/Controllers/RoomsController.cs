@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Web.Http;
 using System.Web.Http.Description;
+using System.Web.Security;
 using pet.Filter;
 using pet.Models;
 using pet.Security;
@@ -39,7 +40,7 @@ namespace pet.Controllers
                 roomCompanyModel.area = company.area;
                 roomCompanyModel.address = company.address;
                 List<Room> rooms = db.Room.Where(x => x.companyseq == company.companyseq &&
-                                                     x.state == Roomstate.已上架 &&
+                                                     x.state == true &&
                                                      x.del_flag == "N").ToList();
                 //廠商有 (已上架 && 未刪除) 的寄宿空間
                 if (rooms.Count > 0)
@@ -87,7 +88,7 @@ namespace pet.Controllers
         public IHttpActionResult GetRoomslist()
         {
             List<RoomModel> roomModel = new List<RoomModel>();
-            List<Room> room = db.Room.Where(x => x.del_flag == "N" && x.state == Roomstate.已上架).ToList();
+            List<Room> room = db.Room.Where(x => x.del_flag == "N" && x.state == true).ToList();
             foreach (Room r in room)
             {
                 RoomModel roomModel_ = new RoomModel();
@@ -127,7 +128,7 @@ namespace pet.Controllers
                 roomModel_.companyseq = r.companyseq;
                 roomModel_.roomseq = r.roomseq;
                 roomModel_.roomname = r.roomname;
-                roomModel_.state = r.state == Roomstate.已上架 ? true : false;
+                roomModel_.state = r.state.HasValue;
                 Company company = db.Company.Find(r.companyseq);//暫存廠商
                 if (r.pettype_cat.Value)
                     roomModel_.pettype += "貓咪，";
@@ -148,6 +149,10 @@ namespace pet.Controllers
         public IHttpActionResult GetRooms(string id)
         {
             Room room = db.Room.Find(id);
+            room.img1 = room.img1 is null ? "" : room.img1;
+            room.img2 = room.img2 is null ? "" : room.img2;
+            room.img3 = room.img3 is null ? "" : room.img3;
+            room.img4 = room.img4 is null ? "" : room.img4;
             return Ok(room);
         }
 
@@ -167,30 +172,33 @@ namespace pet.Controllers
                 //必填欄位
                 room.companyseq = userseq;//必填欄位
                 room.del_flag = "N";
-                room.state = Roomstate.已上架;
+                room.state = true;
                 //重新驗證model
                 ModelState.Clear();
                 Validate(room);
-                using (var transaction1 = db.Database.BeginTransaction((System.Data.IsolationLevel.RepeatableRead)))
+                if (ModelState.IsValid)
                 {
-                    string today = DateTime.Now.ToString("yyyyMMdd");
-                    Room getseq = db.Room.Where(x => x.roomseq.Contains(today)).OrderByDescending(x => x.roomseq).FirstOrDefault();
-                    int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.roomseq.Substring(9, 4)));//流水號
-                    room.roomseq = "R" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
-                    if (ModelState.IsValid)
+                    using (var transaction1 = db.Database.BeginTransaction((System.Data.IsolationLevel.RepeatableRead)))
                     {
+                        string today = DateTime.Now.ToString("yyyyMMdd");
+                        Room getseq = db.Room.Where(x => x.roomseq.Contains(today)).OrderByDescending(x => x.roomseq).FirstOrDefault();
+                        int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.roomseq.Substring(9, 4)));//流水號
+                        room.roomseq = "R" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
+
                         db.Room.Add(room);
                         db.SaveChanges();
                         transaction1.Commit();
-                    }
-                    else
-                    {
-                        return Ok(new
-                        {
-                            result = ModelState
-                        });
+
                     }
                 }
+                else
+                {
+                    return Ok(new
+                    {
+                        result = ModelState
+                    });
+                }
+
                 return Ok(new
                 {
                     result = "上架成功"
@@ -225,7 +233,6 @@ namespace pet.Controllers
                 //重新驗證model
                 ModelState.Clear();
                 Validate(room);
-
                 db.Room.Attach(room);
                 foreach (PropertyInfo p in room.GetType().GetProperties())
                 {
@@ -289,10 +296,10 @@ namespace pet.Controllers
             try
             {
                 Room room = db.Room.Find(id);
-                if (room.state == Roomstate.已上架)
-                    room.state = Roomstate.未上架;
+                if (room.state == true)
+                    room.state = false;
                 else
-                    room.state = Roomstate.已上架;
+                    room.state = true;
                 db.Entry(room).State = EntityState.Modified;
                 db.SaveChanges();
             }
