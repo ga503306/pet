@@ -64,5 +64,42 @@ namespace pet.Controllers
             }
 
         }
+
+        // Post: api/CheckIdentity
+        [JwtAuthFilter]
+        [HttpGet]
+        [Route("GetIdentity")]
+        public IHttpActionResult GetIdentity()
+        {
+            string error_message = "GetIdentity，請至伺服器log查詢錯誤訊息";
+            //拿已登入的流水
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
+            string Identity = null;
+            try
+            {
+                string temp = userseq.Substring(0, 1);
+
+                if (temp == "C")
+                    Identity = "廠商";
+                else
+                    Identity = "會員";
+
+                return Ok(new
+                {
+                    result = Identity
+                });
+            }
+            catch (Exception ex)
+            {
+                Utility.log("GetIdentity", ex.ToString());
+                return Ok(new
+                {
+                    result = error_message
+                });
+            }
+
+        }
     }
 }
