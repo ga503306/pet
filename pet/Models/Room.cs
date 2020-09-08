@@ -41,13 +41,13 @@ namespace pet.Models
 
         public int? walk { get; set; }
 
-        public bool? canned { get; set; }
+        public bool canned { get; set; }
 
-        public bool? feed { get; set; }
+        public bool feed { get; set; }
 
-        public bool? catlitter { get; set; }
+        public bool catlitter { get; set; }
 
-        public int? visit { get; set; }
+        public int visit { get; set; }
 
         public bool? medicine_infeed { get; set; }
 
