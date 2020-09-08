@@ -12,7 +12,6 @@ namespace pet.Models
         [MaxLength(50)]
         public string membername { get; set; }
 
-        [Required]
         [MaxLength(10)]
         public string phone { get; set; }
 
