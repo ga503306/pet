@@ -72,16 +72,8 @@ namespace pet.Controllers
                     {
                         result = "信箱重複"
                     });
-                //正常流程
-                string today = DateTime.Now.ToString("yyyyMMdd");
-                using (var transaction1 = db.Database.BeginTransaction())
-                {
-                    try
-                    {
-                        Member getseq = db.Member.Where(x => x.memberseq.Contains(today)).OrderByDescending(x => x.memberseq).FirstOrDefault();
-                        int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.memberseq.Substring(9, 4)));//流水號
+                //正常流程                
                         Member member = new Member();
-                        member.memberseq = "M" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
                         member.membername = memberRegisterModel.membername;
                         member.phone = memberRegisterModel.phone;
                         member.email = memberRegisterModel.email;
@@ -91,14 +83,7 @@ namespace pet.Controllers
                         member.avatar = memberRegisterModel.avatar;
                         db.Member.Add(member);
                         db.SaveChanges();
-                        transaction1.Commit();
-                    }
-                    catch (DbUpdateException)
-                    {
-                        transaction1.Rollback();
-                    }
-                }
-
+                     
                 return Ok(new
                 {
                     result = "註冊成功"

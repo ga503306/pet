@@ -11,6 +11,7 @@ namespace pet.Models
     {
         [Key]
         [StringLength(20)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string orderseq { get; set; }
 
         [Required]

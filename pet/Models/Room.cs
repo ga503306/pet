@@ -12,6 +12,7 @@ namespace pet.Models
     {
         [Key]
         [StringLength(20)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string roomseq { get; set; }
 
         [StringLength(50)]
