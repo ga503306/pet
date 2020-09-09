@@ -204,6 +204,10 @@
     <Compile Include="Migrations\202009080832038_2020090802.Designer.cs">
       <DependentUpon>202009080832038_2020090802.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202009091643341_2020091001.cs" />
+    <Compile Include="Migrations\202009091643341_2020091001.Designer.cs">
+      <DependentUpon>202009091643341_2020091001.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\CompanyGetone.cs" />
@@ -327,6 +331,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202009080832038_2020090802.resx">
       <DependentUpon>202009080832038_2020090802.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009091643341_2020091001.resx">
+      <DependentUpon>202009091643341_2020091001.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

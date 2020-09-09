@@ -251,14 +251,14 @@ namespace pet.Controllers
                         result = "信箱重複"
                     });
                 //正常流程
-                using (var transaction1 = db.Database.BeginTransaction())
-                {
-                    string today = DateTime.Now.ToString("yyyyMMdd");
-                    Company getseq = db.Company.Where(x => x.companyseq.Contains(today)).OrderByDescending(x => x.companyseq).FirstOrDefault();
-                    int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.companyseq.Substring(9, 4)));//流水號
+                //using (var transaction1 = db.Database.BeginTransaction())
+               // {
+                   // string today = DateTime.Now.ToString("yyyyMMdd");
+                    //Company getseq = db.Company.Where(x => x.companyseq.Contains(today)).OrderByDescending(x => x.companyseq).FirstOrDefault();
+                   // int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.companyseq.Substring(9, 4)));//流水號
 
                     Company company = new Company();
-                    company.companyseq = "C" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
+                    //company.companyseq = "C" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
                     company.companyname = companyRegisterModel.companyname;
                     company.companybrand = companyRegisterModel.companybrand;
                     company.phone = companyRegisterModel.phone;
@@ -275,8 +275,8 @@ namespace pet.Controllers
                     company.del_flag = "N";
                     db.Company.Add(company);
                     db.SaveChanges();
-                    transaction1.Commit();
-                }
+                    //transaction1.Commit();
+              //  }
 
                 return Ok(new
                 {
