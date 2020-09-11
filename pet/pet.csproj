@@ -169,6 +169,7 @@
     <Compile Include="Controllers\CompaniesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MembersController.cs" />
+    <Compile Include="Controllers\PayController.cs" />
     <Compile Include="Controllers\RoomsController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Filter\CustomAuthorization.cs" />
@@ -216,6 +217,10 @@
     <Compile Include="Migrations\202009091701145_2020091003.Designer.cs">
       <DependentUpon>202009091701145_2020091003.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202009100701228_2020091004.cs" />
+    <Compile Include="Migrations\202009100701228_2020091004.Designer.cs">
+      <DependentUpon>202009100701228_2020091004.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\CompanyGetone.cs" />
@@ -228,6 +233,20 @@
     <Compile Include="Models\MemberGetone.cs" />
     <Compile Include="Models\MemberRegisterModel.cs" />
     <Compile Include="Models\Model1.cs" />
+    <Compile Include="Models\newebpay\Atom.cs" />
+    <Compile Include="Models\newebpay\Atom.T.cs" />
+    <Compile Include="Models\newebpay\BankInfoModel.cs" />
+    <Compile Include="Models\newebpay\ConfigurationUtility.cs" />
+    <Compile Include="Models\newebpay\CryptoUtil.cs" />
+    <Compile Include="Models\newebpay\LambdaUtil.cs" />
+    <Compile Include="Models\newebpay\LogUtil.cs" />
+    <Compile Include="Models\newebpay\PathUtil.cs" />
+    <Compile Include="Models\newebpay\RazorExtensions.cs" />
+    <Compile Include="Models\newebpay\SpgatewayInputModel.cs" />
+    <Compile Include="Models\newebpay\SpgatewayOutputDataModel.cs" />
+    <Compile Include="Models\newebpay\SpgatewayTakeNumberDataModel.cs" />
+    <Compile Include="Models\newebpay\StringExtension.cs" />
+    <Compile Include="Models\newebpay\TradeInfo.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\Pagination.cs" />
     <Compile Include="Models\Room.cs" />
@@ -348,6 +367,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202009091701145_2020091003.resx">
       <DependentUpon>202009091701145_2020091003.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009100701228_2020091004.resx">
+      <DependentUpon>202009100701228_2020091004.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

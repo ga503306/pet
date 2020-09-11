@@ -30,6 +30,9 @@ namespace pet.Models
         [StringLength(50)]
         public string roomname { get; set; }
 
+        [StringLength(20)]
+        public string memberseq { get; set; }
+
         [StringLength(10)]
         public string country { get; set; }
 
