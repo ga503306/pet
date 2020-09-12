@@ -67,7 +67,7 @@ namespace pet.Controllers
             try
             {
                 //信箱重複
-                if (MemberExists(HttpContext.Current.Request.Form["email"]))
+                if (MemberExists(memberRegisterModel.email))
                     return Ok(new
                     {
                         result = "信箱重複"
