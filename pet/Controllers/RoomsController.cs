@@ -23,93 +23,194 @@ namespace pet.Controllers
     {
         private Model1 db = new Model1();
         // Get: api/Room/GetCompanys //前台拿所有廠商 未被封鎖的
-        [JwtAuthFilter]
+
         [Route("GetCompanys")]
         [HttpGet]
-        public IHttpActionResult GetCompanys()
+        public IHttpActionResult GetCompanys(int page = 1, int paged = 6)
         {
-            List<RoomCompanyModel> roomCompanyModels = new List<RoomCompanyModel>();
-            List<Company> companies = db.Company.Where(x => x.del_flag == "N").ToList();
-            foreach (Company company in companies)
+            Pagination pagination = new Pagination();
+            List<Company> companies = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).OrderBy(x => x.companyseq).Skip((page - 1) * paged).Take(paged).ToList();
+
+            pagination.total = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).Count();
+            pagination.count = companies.Count;
+            pagination.per_page = paged;
+            pagination.current_page = page;
+            pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+            //if (companies.Select(x => new { pettype_cat = x.Room.Where(y => y.pettype_cat == true) }).Count() > 0)
+            //    pettype_cat = true;
+            //if (companies.Select(x => new { pettype_dog = x.Room.Where(y => y.pettype_dog == true) }).Count() > 0)
+            //    pettype_dog = true;
+            //if (companies.Select(x => new { pettype_other = x.Room.Where(y => y.pettype_other == true) }).Count() > 0)
+            //    pettype_other = true;
+
+            var result = new
             {
-                RoomCompanyModel roomCompanyModel = new RoomCompanyModel();
-                roomCompanyModel.companyseq = company.companyseq;
-                roomCompanyModel.companybrand = company.companybrand;
-                roomCompanyModel.avatar = company.avatar;
-                roomCompanyModel.country = company.country;
-                roomCompanyModel.area = company.area;
-                roomCompanyModel.address = company.address;
-                List<Room> rooms = db.Room.Where(x => x.companyseq == company.companyseq &&
-                                                     x.state == true &&
-                                                     x.del_flag == "N").ToList();
-                //廠商有 (已上架 && 未刪除) 的寄宿空間
-                if (rooms.Count > 0)
+                companies = companies.Select(x => new
                 {
-                    bool hascat = false;
-                    bool hasdog = false;
-                    bool hasother = false;
-                    int price_min = int.MaxValue;
-                    int price_max = int.MinValue;
-                    foreach (Room r in rooms)
-                    {
-                        //如果某一間房間有勾貓 就在廠商顯示貓總類
-                        if (r.pettype_cat.Value)
-                            hascat = true;
-                        if (r.pettype_dog.Value)
-                            hasdog = true;
-                        if (r.pettype_other.Value)
-                            hasother = true;
-                        //紀錄最大金額 最小金額
-                        if (r.roomprice > price_max)
-                            price_max = r.roomprice.Value;
-                        if (r.roomprice < price_min)
-                            price_min = r.roomprice.Value;
-                    }
-                    if (hascat)
-                        roomCompanyModel.pettype += "貓咪 ";
-                    if (hasdog)
-                        roomCompanyModel.pettype += "狗 ";
-                    if (hasother)
-                        roomCompanyModel.pettype += "其他 ";
+                    x.companyseq,
+                    x.companybrand,
+                    bannerimg = x.bannerimg is null ? "" : x.bannerimg,
+                    avatar = x.avatar is null ? "" : x.avatar,
+                    x.country,
+                    x.area,
+                    x.address,
+                    pettype_cat = check(x.Room.Where(y => y.pettype_cat == true).Count()),
+                    pettype_dog = check(x.Room.Where(y => y.pettype_dog == true).Count()),
+                    pettype_other = check(x.Room.Where(y => y.pettype_other == true).Count()),
+                    roomprice_min = x.Room.Min(y => y.roomprice) is null ? 0 : x.Room.Min(y => y.roomprice),
+                    roomprice_max = x.Room.Max(y => y.roomprice) is null ? 0 : x.Room.Max(y => y.roomprice),
+                    rooms = x.Room.Count()
+                }),
+                meta = pagination
+            };
 
-                    roomCompanyModel.roomprice_min = price_min;
-                    roomCompanyModel.roomprice_max = price_max;
-                }
-                roomCompanyModel.rooms = rooms is null ? 0 : rooms.Count;
-                roomCompanyModels.Add(roomCompanyModel);
-            }
+            //List<RoomCompanyModel> roomCompanyModels = new List<RoomCompanyModel>();
 
-            return Ok(roomCompanyModels);
+            //foreach (Company company in companies)
+            //{
+            //    RoomCompanyModel roomCompanyModel = new RoomCompanyModel();
+            //    roomCompanyModel.companyseq = company.companyseq;
+            //    roomCompanyModel.companybrand = company.companybrand;
+            //    roomCompanyModel.avatar = company.avatar;
+            //    roomCompanyModel.country = company.country;
+            //    roomCompanyModel.area = company.area;
+            //    roomCompanyModel.address = company.address;
+            //    List<Room> rooms = db.Room.Where(x => x.companyseq == company.companyseq &&
+            //                                         x.state == true &&
+            //                                         x.del_flag == "N").ToList();
+            //    //廠商有 (已上架 && 未刪除) 的寄宿空間
+            //    if (rooms.Count > 0)
+            //    {
+            //        bool hascat = false;
+            //        bool hasdog = false;
+            //        bool hasother = false;
+            //        int price_min = int.MaxValue;
+            //        int price_max = int.MinValue;
+            //        foreach (Room r in rooms)
+            //        {
+            //            //如果某一間房間有勾貓 就在廠商顯示貓總類
+            //            if (r.pettype_cat.Value)
+            //                hascat = true;
+            //            if (r.pettype_dog.Value)
+            //                hasdog = true;
+            //            if (r.pettype_other.Value)
+            //                hasother = true;
+            //            //紀錄最大金額 最小金額
+            //            if (r.roomprice > price_max)
+            //                price_max = r.roomprice.Value;
+            //            if (r.roomprice < price_min)
+            //                price_min = r.roomprice.Value;
+            //        }
+            //        if (hascat)
+            //            roomCompanyModel.pettype += "貓咪 ";
+            //        if (hasdog)
+            //            roomCompanyModel.pettype += "狗 ";
+            //        if (hasother)
+            //            roomCompanyModel.pettype += "其他 ";
+
+            //        roomCompanyModel.roomprice_min = price_min;
+            //        roomCompanyModel.roomprice_max = price_max;
+            //    }
+            //   roomCompanyModel.rooms = rooms is null ? 0 : rooms.Count;
+            //    roomCompanyModels.Add(roomCompanyModel);
+            // }
+
+            return Ok(result);
         }
         // Get: api/Room/GetRoomslist //用在廠商頁 只顯示已上架
-        [JwtAuthFilter]
         [Route("GetRoomslist")]
         [HttpGet]
-        public IHttpActionResult GetRoomslist()
+        public IHttpActionResult GetRoomslist(string id)
         {
-            List<RoomModel> roomModel = new List<RoomModel>();
-            List<Room> room = db.Room.Where(x => x.del_flag == "N" && x.state == true).ToList();
-            foreach (Room r in room)
+            Company company = db.Company.Find(id);
+            var result = new
             {
-                RoomModel roomModel_ = new RoomModel();
-                roomModel_.companyseq = r.companyseq;
-                Company company = db.Company.Find(r.companyseq);//廠商暫存
-                roomModel_.companybrand = company.companybrand;
-                roomModel_.avatar = company.avatar;
-                roomModel_.country = company.country;
-                roomModel_.area = company.area;
-                roomModel_.address = company.address;
-                if (r.pettype_cat.Value)
-                    roomModel_.pettype += "貓咪 ";
-                if (r.pettype_dog.Value)
-                    roomModel_.pettype += "狗 ";
-                if (r.pettype_other.Value)
-                    roomModel_.pettype += "其他 ";
-                roomModel_.roomprice = r.roomprice;
-                roomModel.Add(roomModel_);
-            }
-            return Ok(roomModel);
+                company = new
+                {
+                    company.companyname,
+                    company.companybrand,
+                    avatar = company.avatar is null ? "" : company.avatar,
+                    bannerimg = company.bannerimg is null ? "" : company.bannerimg,
+                    company.introduce,
+                    company.morning,
+                    company.afternoon,
+                    company.night,
+                    company.midnight,
+                    pettype_cat = check(company.Room.Where(y => y.pettype_cat == true).Count()),
+                    pettype_dog = check(company.Room.Where(y => y.pettype_dog == true).Count()),
+                    pettype_other = check(company.Room.Where(y => y.pettype_other == true).Count()),
+                    company.Room.Count
+                },
+                roomlists = company.Room.Select(x => new
+                {
+                    x.roomseq,
+                    x.companyseq,
+                    x.roomname,
+                    company.companybrand,
+                    img1 = x.img1 is null ? "" : x.img1,
+                    img2 = x.img2 is null ? "" : x.img2,
+                    img3 = x.img3 is null ? "" : x.img3,
+                    img4 = x.img4 is null ? "" : x.img4,
+                    company.country,
+                    company.area,
+                    x.pettype_cat,
+                    x.pettype_dog,
+                    x.pettype_other,
+                    x.visit,
+                    x.roomamount,
+                    x.petsizes,
+                    x.petsizee,
+                    x.roomprice,
+
+                })
+            };
+            //改寫法
+            //List<RoomModel> roomModel = new List<RoomModel>();
+            //RoomModel roomModel = new RoomModel();
+            //Company company = db.Company.Find(id);
+
+            //List<Room> room = db.Room.Where(x => x.companyseq == id && x.del_flag == "N" && x.state == true).ToList();
+            //foreach (Room r in room)
+            //{
+            //    Roomlist roomlist = new Roomlist();
+            //    roomlist.companyseq = r.companyseq;
+            //    roomlist.companybrand = company.companybrand;
+            //    roomlist.avatar = company.avatar;
+            //    roomlist.country = company.country;
+            //    roomlist.area = company.area;
+            //    roomlist.address = company.address;
+            //    if (r.pettype_cat.Value)
+            //        roomlist.pettype += "貓咪，";
+            //    if (r.pettype_dog.Value)
+            //        roomlist.pettype += "狗，";
+            //    if (r.pettype_other.Value)
+            //        roomlist.pettype += "其他，";
+            //    if (!string.IsNullOrWhiteSpace(roomlist.pettype))//不是空的裁切字串
+            //        roomlist.pettype = roomlist.pettype.Remove(roomlist.pettype.LastIndexOf("、"), 1);
+            //    roomlist.roomprice = r.roomprice;
+            //    roomModel.roomlists.Add(roomlist);
+            //}
+
+            //roomModel.companyDetail.companyname = company.companyname;
+            //roomModel.companyDetail.companybrand = company.companybrand;
+            //roomModel.companyDetail.pettype = company.companybrand;
+            //roomModel.companyDetail.star = "";
+            //roomModel.companyDetail.star_total = "";
+            //if (company.morning.Value)
+            //    roomModel.companyDetail.reply += "早上、";
+            //if (company.afternoon.Value)
+            //    roomModel.companyDetail.reply += "下午、";
+            //if (company.night.Value)
+            //    roomModel.companyDetail.reply += "晚上、";
+            //if (company.midnight.Value)
+            //    roomModel.companyDetail.reply += "深夜、";
+            //if (!string.IsNullOrWhiteSpace(roomModel.companyDetail.reply))//不是空的裁切字串
+            //    roomModel.companyDetail.reply = roomModel.companyDetail.reply.Remove(roomModel.companyDetail.reply.LastIndexOf("、"), 1);
+            //roomModel.companyDetail.rooms = company.companybrand;
+
+            return Ok(result);
         }
+
         // Get: api/Room/GetRooms //用在廠商後台 顯示廠商所有房間
         [JwtAuthFilter]
         [Route("GetRooms")]
@@ -120,29 +221,46 @@ namespace pet.Controllers
             JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
             string userseq = jwtAuthUtil.Getuserseq(token);
 
-            List<RoomBackendModel> roomModel = new List<RoomBackendModel>();
+
             List<Room> room = db.Room.Where(x => x.companyseq == userseq && x.del_flag == "N").ToList();
-            foreach (Room r in room)
+            var result = new
             {
-                RoomBackendModel roomModel_ = new RoomBackendModel();
-                roomModel_.companyseq = r.companyseq;
-                roomModel_.roomseq = r.roomseq;
-                roomModel_.roomname = r.roomname;
-                roomModel_.state = r.state.Value;
-                Company company = db.Company.Find(r.companyseq);//暫存廠商
-                if (r.pettype_cat.Value)
-                    roomModel_.pettype += "貓咪，";
-                if (r.pettype_dog.Value)
-                    roomModel_.pettype += "狗，";
-                if (r.pettype_other.Value)
-                    roomModel_.pettype += "其他，";
-                roomModel_.pettype = roomModel_.pettype.Remove(roomModel_.pettype.LastIndexOf("，"), 1);
-                roomModel.Add(roomModel_);
-            }
-            return Ok(roomModel);
+                room = room.Select(
+                    x => new
+                    {
+                        x.companyseq,
+                        x.roomseq,
+                        x.roomname,
+                        x.pettype_cat,
+                        x.pettype_dog,
+                        x.pettype_other,
+                        x.state
+                    })
+            };
+
+            // List<RoomBackendModel> roomModel = new List<RoomBackendModel>();
+            //foreach (Room r in room)
+            //{
+            //    RoomBackendModel roomModel_ = new RoomBackendModel();
+            //    roomModel_.companyseq = r.companyseq;
+            //    roomModel_.roomseq = r.roomseq;
+            //    roomModel_.roomname = r.roomname;
+            //    roomModel_.state = r.state.Value;
+            //    Company company = db.Company.Find(r.companyseq);//暫存廠商
+            //    if (r.pettype_cat.Value)
+            //        roomModel_.pettype += "貓咪，";
+            //    if (r.pettype_dog.Value)
+            //        roomModel_.pettype += "狗，";
+            //    if (r.pettype_other.Value)
+            //        roomModel_.pettype += "其他，";
+            //    roomModel_.pettype = roomModel_.pettype.Remove(roomModel_.pettype.LastIndexOf("，"), 1);
+            //    roomModel.Add(roomModel_);
+            //}
+
+            return Ok(result);
         }
 
-        // Get: api/Room/GetRooms/5
+        // Get: api/Room/GetRooms/5 //後台廠商編輯上架
         [JwtAuthFilter]
         [HttpGet]
         [Route("GetRooms")]
@@ -156,6 +274,70 @@ namespace pet.Controllers
             return Ok(room);
         }
 
+        // Get: api/Room/GetRoomsFront/5 //前台 點入廠商上架的產品
+        [HttpGet]
+        [Route("GetRoomsFront")]
+        public IHttpActionResult GetRoomsFront(string id)
+        {
+            //未完
+            
+            Room room = db.Room.Find(id);
+            Company company = db.Company.Find(room.companyseq);
+            var result = new
+            {
+                company = new
+                {
+                    company.companyname,
+                    company.companybrand,
+                    company.avatar,
+                    company.morning,
+                    company.afternoon,
+                    company.night,
+                    company.midnight,
+                    company.country,
+                    company.area,
+                    company.address
+                },
+                room = new
+                {
+                    room.roomseq,
+                    room.roomname,
+                    room.companyseq,
+                    room.introduce,
+                    room.pettype_cat,
+                    room.pettype_dog,
+                    room.pettype_other,
+                    room.petsizes,
+                    room.petsizee,
+                    room.roomamount,
+                    room.roomprice,
+                    room.roomamount_amt,
+                    room.walk,
+                    room.canned,
+                    room.feed,
+                    room.catlitter,
+                    room.visit,
+                    room.medicine_infeed,
+                    room.medicine_infeed_amt,
+                    room.medicine_paste,
+                    room.medicine_paste_amt,
+                    room.medicine_pill,
+                    room.medicine_pill_amt,
+                    room.bath,
+                    room.bath_amt,
+                    room.hair,
+                    room.hair_amt,
+                    room.nails,
+                    room.nails_amt,
+                    room.state,
+                    img1 = room.img1 is null ? "" : room.img1,
+                    img2 = room.img2 is null ? "" : room.img2,
+                    img3 = room.img3 is null ? "" : room.img3,
+                    img4 = room.img4 is null ? "" : room.img4
+                }
+            };
+            return Ok(result);
+        }
         // Post: api/Room/Create
         [JwtAuthFilter]
         [Route("Create")]
@@ -185,23 +367,14 @@ namespace pet.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    using (var transaction1 = db.Database.BeginTransaction((System.Data.IsolationLevel.RepeatableRead)))
-                    {
-                        string today = DateTime.Now.ToString("yyyyMMdd");
-                        Room getseq = db.Room.Where(x => x.roomseq.Contains(today)).OrderByDescending(x => x.roomseq).FirstOrDefault();
-                        int seq = getseq is null ? 0000 : Convert.ToInt32((getseq.roomseq.Substring(9, 4)));//流水號
-                        room.roomseq = "R" + DateTime.Now.ToString("yyyyMMdd") + (seq + 1).ToString("0000");
-                        room.medicine_infeed_amt = room.medicine_infeed_amt == null ? 0 : room.medicine_infeed_amt.Value;
-                        room.medicine_paste_amt = room.medicine_paste_amt == null ? 0 : room.medicine_paste_amt.Value;
-                        room.medicine_pill_amt = room.medicine_pill_amt == null ? 0 : room.medicine_pill_amt.Value;
-                        room.bath_amt = room.bath_amt == null ? 0 : room.bath_amt.Value;
-                        room.hair_amt = room.hair_amt == null ? 0 : room.hair_amt.Value;
-                        room.nails_amt = room.nails_amt == null ? 0 : room.nails_amt.Value;
-                        db.Room.Add(room);
-                        db.SaveChanges();
-                        transaction1.Commit();
-
-                    }
+                    room.medicine_infeed_amt = room.medicine_infeed_amt == null ? 0 : room.medicine_infeed_amt.Value;
+                    room.medicine_paste_amt = room.medicine_paste_amt == null ? 0 : room.medicine_paste_amt.Value;
+                    room.medicine_pill_amt = room.medicine_pill_amt == null ? 0 : room.medicine_pill_amt.Value;
+                    room.bath_amt = room.bath_amt == null ? 0 : room.bath_amt.Value;
+                    room.hair_amt = room.hair_amt == null ? 0 : room.hair_amt.Value;
+                    room.nails_amt = room.nails_amt == null ? 0 : room.nails_amt.Value;
+                    db.Room.Add(room);
+                    db.SaveChanges();
                 }
                 else
                 {
@@ -348,6 +521,14 @@ namespace pet.Controllers
         private bool RoomExists(string id)
         {
             return db.Room.Count(e => e.roomseq == id) > 0;
+        }
+
+        public bool check(int count)//檢查廠商房間 paytype用
+        {
+            if (count > 0)
+                return true;
+            else
+                return false;
         }
     }
 }
