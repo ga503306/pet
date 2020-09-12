@@ -16,6 +16,8 @@ namespace pet.Models
         public virtual DbSet<Member> Member { get; set; }
         public virtual DbSet<Room> Room { get; set; }
         public virtual DbSet<Order> Order { get; set; }
+        public virtual DbSet<Evalution> Evalution { get; set; }
+        public virtual DbSet<OrderCancel> OrderCancel { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
         }

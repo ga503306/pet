@@ -9,9 +9,15 @@ namespace pet.Models
     [Table("Order")]
     public partial class Order
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Order()
+        {
+            Evalution = new HashSet<Evalution>();
+            OrderCancel = new HashSet<OrderCancel>();
+        }
+
         [Key]
         [StringLength(20)]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string orderseq { get; set; }
 
         [Required]
@@ -29,9 +35,6 @@ namespace pet.Models
         [Required]
         [StringLength(50)]
         public string roomname { get; set; }
-
-        [StringLength(20)]
-        public string memberseq { get; set; }
 
         [StringLength(10)]
         public string country { get; set; }
@@ -112,5 +115,14 @@ namespace pet.Models
         public string updatename { get; set; }
 
         public DateTime? updateday { get; set; }
+
+        [StringLength(20)]
+        public string memberseq { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Evalution> Evalution { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<OrderCancel> OrderCancel { get; set; }
     }
 }

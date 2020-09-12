@@ -169,6 +169,7 @@
     <Compile Include="Controllers\CompaniesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MembersController.cs" />
+    <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\PayController.cs" />
     <Compile Include="Controllers\RoomsController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
@@ -221,6 +222,14 @@
     <Compile Include="Migrations\202009100701228_2020091004.Designer.cs">
       <DependentUpon>202009100701228_2020091004.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202009120429201_2020091201.cs" />
+    <Compile Include="Migrations\202009120429201_2020091201.Designer.cs">
+      <DependentUpon>202009120429201_2020091201.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202009120444266_2020091202.cs" />
+    <Compile Include="Migrations\202009120444266_2020091202.Designer.cs">
+      <DependentUpon>202009120444266_2020091202.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\CompanyGetone.cs" />
@@ -228,6 +237,7 @@
     <Compile Include="Models\CompanyPatch.cs" />
     <Compile Include="Models\CompanyRegisterModel.cs" />
     <Compile Include="Models\Enumlist.cs" />
+    <Compile Include="Models\Evalution.cs" />
     <Compile Include="Models\GetIdentityModel.cs" />
     <Compile Include="Models\Member.cs" />
     <Compile Include="Models\MemberGetone.cs" />
@@ -248,6 +258,7 @@
     <Compile Include="Models\newebpay\StringExtension.cs" />
     <Compile Include="Models\newebpay\TradeInfo.cs" />
     <Compile Include="Models\Order.cs" />
+    <Compile Include="Models\OrderCancel.cs" />
     <Compile Include="Models\Pagination.cs" />
     <Compile Include="Models\Room.cs" />
     <Compile Include="Models\Utility.cs" />
@@ -370,6 +381,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202009100701228_2020091004.resx">
       <DependentUpon>202009100701228_2020091004.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009120429201_2020091201.resx">
+      <DependentUpon>202009120429201_2020091201.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009120444266_2020091202.resx">
+      <DependentUpon>202009120444266_2020091202.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
