@@ -4,9 +4,11 @@ using pet.Security;
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Web.Http;
 
 namespace pet.Controllers
@@ -33,7 +35,16 @@ namespace pet.Controllers
             //廠商
             //if (temp == "C")
             // {
-            List<Order> order = db.Order.Where(x => (temp == "C" ? x.companyseq == userseq : x.memberseq == userseq) && (state == 99 ? x.state != 0 : x.state == state)).OrderBy(x => x.orderseq).Skip((page - 1) * paged).Take(paged).ToList();
+
+            //反射的possiblity
+
+            var linq = db.Order.Where(x => (temp == "C" ? x.companyseq == userseq : x.memberseq == userseq) && (state == 99 ? x.state != 0 : x.state == state));
+            if(state == 2)
+                linq = linq.OrderBy(x => x.updateday).Skip((page - 1) * paged).Take(paged);
+            else
+                linq = linq.OrderBy(x => x.orderseq).Skip((page - 1) * paged).Take(paged);
+
+            List<Order> order =linq.ToList();
             if (order == null)
             {
                 return Ok(new
@@ -56,6 +67,8 @@ namespace pet.Controllers
                     orderdates = Convert.ToDateTime(x.orderdates).ToString("yyyy-MM-dd"),
                     orderdatee = Convert.ToDateTime(x.orderdatee).ToString("yyyy-MM-dd"),
                     x.roomname,
+                    setdate = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm"),
+                    canceldate = Convert.ToDateTime(x.updateday).ToString("yyyy-MM-dd HH:mm"),
                     x.state
                 }),
                 meta = pagination
@@ -119,12 +132,14 @@ namespace pet.Controllers
 
             bool 取消訂單鈕 = false;
             TimeSpan s = new TimeSpan(order.orderdates.Value.Ticks - DateTime.Now.Ticks);
-            if (s.Days > 7)//訂單-今日 日期大於七天 可消單
+
+
+            if (order.state == 1 && s.Days > 7)//如果 狀態不是進行中 就不能消單 //訂單-今日 日期大於七天 可消單
                 取消訂單鈕 = true;
 
             s = new TimeSpan(order.orderdatee.Value.Ticks - order.orderdates.Value.Ticks);
             int 寄宿總價 = 0;//寄宿總價
-            寄宿總價 = 寄宿總價 + order.roomprice.Value * s.Days; //每間金額 * 天數
+            寄宿總價 += (order.roomprice.Value + order.roomamount_amt.Value * (order.petamount.Value - 1)) * (s.Days + 1); //每間金額 * 天數
 
             var result = new
             {
@@ -133,15 +148,25 @@ namespace pet.Controllers
                     order.orderseq,
                     //state = Enum.Parse(typeof(Orderstate), order.state.Value.ToString()).ToString(),
                     order.roomname,
-                    order.orderdates,
-                    order.orderdatee,
-                    roomstate = 寄宿總價
+                    order.companyname,
+                    order.country,
+                    order.area,
+                    order.address,
+                    orderdates = Convert.ToDateTime(order.orderdates).ToString("yyyy-MM-dd"),
+                    orderdatee = Convert.ToDateTime(order.orderdatee).ToString("yyyy-MM-dd"),
+                    roomamt = 寄宿總價,
+                    order.state,
+                    setdate = Convert.ToDateTime(order.postday).ToString("yyyy-MM-dd HH:mm"),
+                    canceldate = Convert.ToDateTime(order.updateday).ToString("yyyy-MM-dd HH:mm"),
                 },
                 detail = new
                 {
                     order.name,
                     order.tel,
                     order.petamount,
+                    order.pettype,
+                    order.petsize,
+                    order.memo,
                     medicine = new
                     {
                         order.medicine_infeed,
@@ -166,5 +191,54 @@ namespace pet.Controllers
             };
             return Ok(result);
         }
+        // GET: api/Order/Getorder?id //後台 單一訂單
+        [JwtAuthFilter]
+        [Route("Cancelorder")]
+        [HttpPost]
+        public IHttpActionResult Cancelorder(OrderCancel orderCancel)
+        {
+
+            //拿已登入的流水
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
+
+            string user = userseq.Substring(0, 1); //C 廠商 M會員
+
+
+            Order order = db.Order.Find(orderCancel.orderseq);
+            TimeSpan s = new TimeSpan(order.orderdates.Value.Ticks - DateTime.Now.Ticks);
+            if (s.Days <= 7)//訂單-今日 日期大於七天 不可消單
+            {
+                return Ok(new
+                {
+                    result = "七天內無法取消訂單"
+                });
+            }
+
+            if (order.state == (int)Orderstate.已取消)
+            {
+                return Ok(new
+                {
+                    result = "已取消"
+                });
+            }
+
+            orderCancel.del_flag = "N";
+            db.OrderCancel.Add(orderCancel);
+
+
+            order.state = (int)Orderstate.已取消;
+            order.updateday = DateTime.Now; //取消訂單時間
+            order.updateseq = userseq;      //取消訂單人
+            db.Entry(order).State = EntityState.Modified;
+            db.SaveChanges();
+
+            return Ok(new
+            {
+                result = "取消成功"
+            });
+        }
     }
+
 }
