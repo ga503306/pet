@@ -353,7 +353,7 @@ namespace WebApplication1.Models
         /// </summary>
         /// <param name="upfile">HttpPostedFile 物件</param>
         /// <returns>儲存檔名</returns>
-        static public string SaveUpImage(HttpPostedFile upfile,string features, string seq)
+        static public string SaveUpImage(HttpPostedFile upfile, string features, string seq)
         {
             if (!Directory.Exists(HttpContext.Current.Server.MapPath("/") + @"/Images/" + features + "/" + seq))
             {
@@ -366,13 +366,13 @@ namespace WebApplication1.Models
             string fileName = String.Format("{0:yyyyMMddhhmmsss}.{1}", DateTime.Now, extension);
             //string fileName = String.Format("image.{0}", extension );
             //string savedName = Path.Combine(HttpContext.Current.Server.MapPath("~/upfiles/images"), fileName);
-            string savedName = HttpContext.Current.Server.MapPath("~/Images") 
+            string savedName = HttpContext.Current.Server.MapPath("~/Images")
                              + "/" + features
                              + "/" + seq
                              + "/" + fileName;
             upfile.SaveAs(savedName);
             //return "http://pettrip.rocket-coding.com/Images/" + features + "/" + seq + "/" + fileName;
-            return "http://" + HttpContext.Current.Request.Url.Host+ "/Images/" + features + "/" + seq + "/" + fileName;
+            return "http://" + HttpContext.Current.Request.Url.Host + "/Images/" + features + "/" + seq + "/" + fileName;
         }
         #endregion
 
@@ -1129,7 +1129,7 @@ namespace WebApplication1.Models
         #endregion
 
         #region Getno 流水號
-        public static string GetNo(string nokey, string ap,string date)
+        public static string GetNo(string nokey, string ap, string date)
         {
             //宣告SQL的連線
             SqlConnection Conn = new SqlConnection();
@@ -1150,9 +1150,9 @@ namespace WebApplication1.Models
                 dt.Load(dr);
                 if (dt.Rows.Count > 0)
                     return dt.Rows[0]["sno"].ToString();
-                else 
+                else
                     return null;
-            }   
+            }
             catch (Exception ex)
             {
                 log("GetNo:", ex.ToString());
@@ -1182,6 +1182,22 @@ namespace WebApplication1.Models
             JArray json = new JArray();
             json = JsonConvert.DeserializeObject<JArray>(jsondata["Message"].ToString());
             return json;
+        }
+        #endregion
+
+
+        #region 日期起訖 回傳中間所有日期
+        //只判斷日期 不判斷時間
+        public static List<string> Data(DateTime statedate, DateTime enddate)
+        {
+            List<string> date = new List<string>();
+            date.Add(statedate.ToString("yyyy-MM-dd"));
+            while (statedate != enddate)
+            {
+                statedate = statedate.AddDays(1);
+                date.Add(statedate.ToString("yyyy-MM-dd"));
+            }
+            return date;
         }
         #endregion
     }
