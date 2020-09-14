@@ -56,11 +56,28 @@ namespace pet.Controllers
             string token = Request.Headers.Authorization.Parameter;
             JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
             string userseq = jwtAuthUtil.Getuserseq(token);
+            
+            //後端 判斷日期有沒有被下訂
+            List<Order> orders = db.Order.Where(x => x.state == (int)Orderstate.已付款 && x.roomseq == order.roomseq).ToList();//已下的訂單
+            List<string> date = new List<string>();//排除的日期
+            foreach (Order o in orders)
+            {
+                date.AddRange(Utility.Data(o.orderdates.Value, o.orderdatee.Value));
+            }
+            if (date.Contains(order.orderdates.Value.ToString("yyyy-MM-dd")) ||
+                date.Contains(order.orderdatee.Value.ToString("yyyy-MM-dd")))
+            {
+                error_message = "日期已被下訂";
+                return Ok(new
+                {
+                    result = error_message
+                });
+            }
 
             Room room = db.Room.Find(order.roomseq);
             Company company = db.Company.Find(room.companyseq);
             order.companyseq = room.companyseq;
-            order.companyname = company.companyname;
+            order.companyname = company.companybrand;
             order.roomname = room.roomname;
             order.memberseq = userseq; //登入者 流水號
             order.country = company.country;
@@ -86,7 +103,7 @@ namespace pet.Controllers
             #region 金額// 處理金額
             TimeSpan s = new TimeSpan(order.orderdatee.Value.Ticks - order.orderdates.Value.Ticks);
             int amt = 0;
-            amt += (room.roomprice.Value + room.roomamount_amt.Value * (order.petamount.Value - 1) ) * (s.Days + 1); //每間金額 * 天數  //隻 * 每隻金額
+            amt += (room.roomprice.Value + room.roomamount_amt.Value * (order.petamount.Value - 1)) * (s.Days + 1); //每間金額 * 天數  //隻 * 每隻金額
 
             if (order.medicine_infeed.Value) //判斷藥
                 amt = amt + room.medicine_infeed_amt.Value * (order.petamount.Value);
@@ -104,7 +121,7 @@ namespace pet.Controllers
 
             //amt += room.roomprice.Value * (s.Days+1); 
             //amt += order.petamount.Value * room.roomamount_amt.Value; //隻 * 每隻金額
-            
+
             #endregion
 
             order.amt = amt;
@@ -262,7 +279,7 @@ namespace pet.Controllers
                 // TODO 將回傳訊息寫入資料庫
 
                 // return Content(JsonConvert.SerializeObject(convertModel));
-                
+
                 if (convertModel.Status == "SUCCESS")
                 {
                     //MerchantOrderNo = "O202009100034"
