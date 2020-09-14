@@ -230,6 +230,14 @@
     <Compile Include="Migrations\202009120444266_2020091202.Designer.cs">
       <DependentUpon>202009120444266_2020091202.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202009140247072_2020091401.cs" />
+    <Compile Include="Migrations\202009140247072_2020091401.Designer.cs">
+      <DependentUpon>202009140247072_2020091401.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202009140300052_2020091402.cs" />
+    <Compile Include="Migrations\202009140300052_2020091402.Designer.cs">
+      <DependentUpon>202009140300052_2020091402.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\CompanyGetone.cs" />
@@ -387,6 +395,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202009120444266_2020091202.resx">
       <DependentUpon>202009120444266_2020091202.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009140247072_2020091401.resx">
+      <DependentUpon>202009140247072_2020091401.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009140300052_2020091402.resx">
+      <DependentUpon>202009140300052_2020091402.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

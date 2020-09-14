@@ -11,10 +11,13 @@ namespace pet.Models
     {
         [Key]
         [StringLength(20)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string ocseq { get; set; }
 
         [StringLength(20)]
         public string orderseq { get; set; }
+
+        public string reason { get; set; }
 
         public string memo { get; set; }
 
