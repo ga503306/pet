@@ -86,21 +86,25 @@ namespace pet.Controllers
             #region 金額// 處理金額
             TimeSpan s = new TimeSpan(order.orderdatee.Value.Ticks - order.orderdates.Value.Ticks);
             int amt = 0;
-            amt = amt + room.roomprice.Value * s.Days; //每間金額 * 天數
-            amt = order.petamount.Value * room.roomamount_amt.Value; //隻 * 每隻金額
+            amt += (room.roomprice.Value + room.roomamount_amt.Value * (order.petamount.Value - 1) ) * (s.Days + 1); //每間金額 * 天數  //隻 * 每隻金額
+
             if (order.medicine_infeed.Value) //判斷藥
-                amt = amt + room.medicine_infeed_amt.Value;
+                amt = amt + room.medicine_infeed_amt.Value * (order.petamount.Value);
             if (order.medicine_paste.Value)
-                amt = amt + room.medicine_paste_amt.Value;
+                amt = amt + room.medicine_paste_amt.Value * (order.petamount.Value);
             if (order.medicine_pill.Value)
-                amt = amt + room.medicine_pill_amt.Value;
+                amt = amt + room.medicine_pill_amt.Value * (order.petamount.Value);
 
             if (order.bath.Value) //判斷加購
-                amt = amt + room.bath_amt.Value;
+                amt = amt + room.bath_amt.Value * (order.petamount.Value);
             if (order.hair.Value)
-                amt = amt + room.hair_amt.Value;
+                amt = amt + room.hair_amt.Value * (order.petamount.Value);
             if (order.nails.Value)
-                amt = amt + room.nails_amt.Value;
+                amt = amt + room.nails_amt.Value * (order.petamount.Value);
+
+            //amt += room.roomprice.Value * (s.Days+1); 
+            //amt += order.petamount.Value * room.roomamount_amt.Value; //隻 * 每隻金額
+            
             #endregion
 
             order.amt = amt;
