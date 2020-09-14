@@ -36,8 +36,6 @@ namespace pet.Controllers
             //if (temp == "C")
             // {
 
-            //反射的possiblity
-
             var linq = db.Order.Where(x => (temp == "C" ? x.companyseq == userseq : x.memberseq == userseq) && (state == 99 ? x.state != 0 : x.state == state));
             if(state == 2)
                 linq = linq.OrderBy(x => x.updateday).Skip((page - 1) * paged).Take(paged);
