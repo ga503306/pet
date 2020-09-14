@@ -283,8 +283,21 @@ namespace pet.Controllers
             
             Room room = db.Room.Find(id);
             Company company = db.Company.Find(room.companyseq);
+
+            List<Order> orders = db.Order.Where(x => x.state == (int)Orderstate.已付款 && x.roomseq == id).ToList();//已下的訂單
+            List<string> date = new List<string>();//排除的日期
+            foreach (Order o in orders)
+            {
+                date.AddRange(Utility.Data(o.orderdates.Value, o.orderdatee.Value));
+            }
+            date = date.OrderBy(x => x).ToList(); //排序日期
+
             var result = new
             {
+                remove = new
+                {
+                    date
+                },
                 company = new
                 {
                     company.companyname,
