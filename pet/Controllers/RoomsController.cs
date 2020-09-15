@@ -279,25 +279,46 @@ namespace pet.Controllers
         [Route("GetRoomsFront")]
         public IHttpActionResult GetRoomsFront(string id)
         {
-            //未完
-            
             Room room = db.Room.Find(id);
             Company company = db.Company.Find(room.companyseq);
 
             List<Order> orders = db.Order.Where(x => x.state == (int)Orderstate.已付款 && x.roomseq == id).ToList();//已下的訂單
-            List<string> date = new List<string>();//排除的日期
+            //List<string> date = new List<string>();//排除的日期
+            //foreach (Order o in orders)
+            //{
+            //    date.AddRange(Utility.Data(o.orderdates.Value, o.orderdatee.Value));
+            //}
+            //date = date.OrderBy(x => x).ToList(); //排序日期
+            //排除的單
+            List<date> remove = new List<date>();
             foreach (Order o in orders)
             {
-                date.AddRange(Utility.Data(o.orderdates.Value, o.orderdatee.Value));
+                remove.Add(new date() { 
+                    orderdates = o.orderdates.Value.ToString("yyyy-MM-dd"), 
+                    orderdatee = o.orderdatee.Value.ToString("yyyy-MM-dd")
+                });
             }
-            date = date.OrderBy(x => x).ToList(); //排序日期
-
+            //七天
+            remove.Add(new date()
+            {
+                orderdates = null,
+                orderdatee = DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")
+            });
+            //三個月
+            remove.Add(new date()
+            {
+                orderdates = DateTime.Now.AddMonths(3).ToString("yyyy-MM-dd"),
+                orderdatee = null
+            });
             var result = new
             {
-                remove = new
-                {
-                    date
-                },
+                remove,
+                //remove = orders.Select(x => new
+                //{
+                //    orderdates = Convert.ToDateTime(x.orderdates),
+                //    orderdatee = Convert.ToDateTime(x.orderdatee)
+                //}),
+
                 company = new
                 {
                     company.companyname,
@@ -428,7 +449,7 @@ namespace pet.Controllers
             {
                 room.companyseq = userseq;
                 room.del_flag = "N";//如果刪除的話 應該也不會進來編輯
-                //重新驗證model
+                                    //重新驗證model
                 ModelState.Clear();
                 Validate(room);
 
@@ -543,5 +564,11 @@ namespace pet.Controllers
             else
                 return false;
         }
+    }
+
+    public class date
+    {
+        public string orderdates { get; set; }
+        public string orderdatee { get; set; }
     }
 }
