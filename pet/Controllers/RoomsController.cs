@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.ModelConfiguration.Conventions;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -26,16 +27,18 @@ namespace pet.Controllers
 
         [Route("GetCompanys")]
         [HttpGet]
-        public IHttpActionResult GetCompanys(int page = 1, int paged = 6)
+        public IHttpActionResult GetCompanys(int page = 1, int paged = 6, string keyword = null, string money = null, string evaluation = null, string country = null, string area = null)
         {
             Pagination pagination = new Pagination();
-            List<Company> companies = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).OrderBy(x => x.companyseq).Skip((page - 1) * paged).Take(paged).ToList();
+            //List<Company> companies = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).OrderBy(x => x.companyseq).Skip((page - 1) * paged).Take(paged).ToList();
 
-            pagination.total = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).Count();
-            pagination.count = companies.Count;
-            pagination.per_page = paged;
-            pagination.current_page = page;
-            pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+            //pagination.total = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).Count();
+            //pagination.count = companies.Count;
+            //pagination.per_page = paged;
+            //pagination.current_page = page;
+            //pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+
+
             //if (companies.Select(x => new { pettype_cat = x.Room.Where(y => y.pettype_cat == true) }).Count() > 0)
             //    pettype_cat = true;
             //if (companies.Select(x => new { pettype_dog = x.Room.Where(y => y.pettype_dog == true) }).Count() > 0)
@@ -43,24 +46,96 @@ namespace pet.Controllers
             //if (companies.Select(x => new { pettype_other = x.Room.Where(y => y.pettype_other == true) }).Count() > 0)
             //    pettype_other = true;
 
+            List<Company> companies = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).OrderBy(x => x.companyseq).ToList();
+
+            var company = companies.Select(x => new
+            {
+                x.companyseq,
+                x.companybrand,
+                bannerimg = x.bannerimg is null ? "" : x.bannerimg,
+                avatar = x.avatar is null ? "" : x.avatar,
+                x.country,
+                x.area,
+                x.address,
+                pettype_cat = check(x.Room.Where(y => y.pettype_cat == true).Count()),
+                pettype_dog = check(x.Room.Where(y => y.pettype_dog == true).Count()),
+                pettype_other = check(x.Room.Where(y => y.pettype_other == true).Count()),
+                roomprice_min = x.Room.Min(y => y.roomprice) is null ? 0 : x.Room.Min(y => y.roomprice),
+                roomprice_max = x.Room.Max(y => y.roomprice) is null ? 0 : x.Room.Max(y => y.roomprice),
+                rooms = x.Room.Where(y => y.state == Convert.ToBoolean(Roomstate.已上架)).Count(),
+                //rooms = x.Room.Where(y => (chk_cat != "null" ? true : y.pettype_cat == true) && (chk_dog != "null" ? true : y.pettype_dog == true) && (chk_other != "null" ? true : y.pettype_other == true)).Count(),
+                //rooms = check_pet(chk_cat, chk_dog, chk_other, x.Room),
+                evaluation = Utility.Evaluation(x.companyseq, "0"),
+                evaluation_count = Utility.Evaluation(x.companyseq, "1")
+            }).AsQueryable();
+
+            //if (chk_cat != "null" && Convert.ToBoolean(chk_cat))
+            //    company = company.Where(x => x.pettype_cat == Convert.ToBoolean(chk_cat));
+
+            //if (chk_dog != "null" && Convert.ToBoolean(chk_dog))
+            //    company = company.Where(x => x.pettype_dog == Convert.ToBoolean(chk_dog));
+
+            //if (chk_other != "null" && Convert.ToBoolean(chk_other))
+            //    company = company.Where(x => x.pettype_other == Convert.ToBoolean(chk_other));
+            //關鍵字查詢
+            if (keyword != null && keyword != "null")
+            {
+                company = company.Where(x => x.companybrand.Contains(keyword));
+            }
+            //市查詢
+            if (country != null && country != "null")
+            {
+                company = company.Where(x => x.country == country);
+            }
+            //區查詢
+            if (area != null && area != "null")
+            {
+                company = company.Where(x => x.area == area);
+            }
+            //排序
+            if (money != null && money != "null")
+                switch (money)
+                {
+                    case "ASC":
+                        company = company.OrderBy(x => x.roomprice_min);
+                        break;
+                    case "DESC":
+                        company = company.OrderByDescending(x => x.roomprice_min);
+                        break;
+                    default:
+                        company = company.OrderBy(x => x.companyseq);
+                        break;
+                }
+            else if (evaluation != null && evaluation != "null")
+            {
+                switch (evaluation)
+                {
+                    case "ASC":
+                        company = company.OrderBy(x => x.evaluation);
+                        break;
+                    case "DESC":
+                        company = company.OrderByDescending(x => x.evaluation);
+                        break;
+                    default:
+                        company = company.OrderBy(x => x.companyseq);
+                        break;
+                }
+            }
+            else
+            {
+                company = company.OrderBy(x => x.companyseq);
+            }
+
+            var company_ = company.Skip((page - 1) * paged).Take(paged).ToList();
+
+            pagination.total = company.Count();
+            pagination.count = company_.Count;
+            pagination.per_page = paged;
+            pagination.current_page = page;
+            pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
             var result = new
             {
-                companies = companies.Select(x => new
-                {
-                    x.companyseq,
-                    x.companybrand,
-                    bannerimg = x.bannerimg is null ? "" : x.bannerimg,
-                    avatar = x.avatar is null ? "" : x.avatar,
-                    x.country,
-                    x.area,
-                    x.address,
-                    pettype_cat = check(x.Room.Where(y => y.pettype_cat == true).Count()),
-                    pettype_dog = check(x.Room.Where(y => y.pettype_dog == true).Count()),
-                    pettype_other = check(x.Room.Where(y => y.pettype_other == true).Count()),
-                    roomprice_min = x.Room.Min(y => y.roomprice) is null ? 0 : x.Room.Min(y => y.roomprice),
-                    roomprice_max = x.Room.Max(y => y.roomprice) is null ? 0 : x.Room.Max(y => y.roomprice),
-                    rooms = x.Room.Count()
-                }),
+                companies = company,
                 meta = pagination
             };
 
@@ -117,12 +192,71 @@ namespace pet.Controllers
 
             return Ok(result);
         }
+        // Get: api/Room/GetRoom //前台拿所有房間 未被封鎖的
+
+        [Route("GetRoom")]
+        [HttpGet]
+        public IHttpActionResult GetRoom(int page = 1, int paged = 6, string chk_cat = null, string chk_dog = null, string chk_other = null)
+        {
+            Pagination pagination = new Pagination();
+
+            List<Company> companies = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).OrderBy(x => x.companyseq).ToList();
+
+            var company = companies.Select(x => new
+            {
+                x.companyseq,
+                x.companybrand,
+                bannerimg = x.bannerimg is null ? "" : x.bannerimg,
+                avatar = x.avatar is null ? "" : x.avatar,
+                x.country,
+                x.area,
+                x.address,
+                pettype_cat = check(x.Room.Where(y => y.pettype_cat == true).Count()),
+                pettype_dog = check(x.Room.Where(y => y.pettype_dog == true).Count()),
+                pettype_other = check(x.Room.Where(y => y.pettype_other == true).Count()),
+                roomprice_min = x.Room.Min(y => y.roomprice) is null ? 0 : x.Room.Min(y => y.roomprice),
+                roomprice_max = x.Room.Max(y => y.roomprice) is null ? 0 : x.Room.Max(y => y.roomprice),
+                rooms = x.Room.Count(),
+                //rooms = x.Room.Where(y => (chk_cat != "null" ? true : y.pettype_cat == true) && (chk_dog != "null" ? true : y.pettype_dog == true) && (chk_other != "null" ? true : y.pettype_other == true)).Count(),
+                //rooms = check_pet(chk_cat, chk_dog, chk_other, x.Room),
+                evaluation = Utility.Evaluation(x.companyseq, "0"),
+                evaluation_count = Utility.Evaluation(x.companyseq, "1")
+            }).AsQueryable();
+
+            if (chk_cat != "null" && Convert.ToBoolean(chk_cat))
+                company = company.Where(x => x.pettype_cat == Convert.ToBoolean(chk_cat));
+
+            if (chk_dog != "null" && Convert.ToBoolean(chk_dog))
+                company = company.Where(x => x.pettype_dog == Convert.ToBoolean(chk_dog));
+
+            if (chk_other != "null" && Convert.ToBoolean(chk_other))
+                company = company.Where(x => x.pettype_other == Convert.ToBoolean(chk_other));
+
+            var company_ = company.OrderBy(x => x.companyseq).Skip((page - 1) * paged).Take(paged).ToList();
+
+            pagination.total = company.Count();
+            pagination.count = company_.Count;
+            pagination.per_page = paged;
+            pagination.current_page = page;
+            pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+            var result = new
+            {
+                companies = company,
+                meta = pagination
+            };
+
+            return Ok(result);
+        }
+
         // Get: api/Room/GetRoomslist //用在廠商頁 只顯示已上架
         [Route("GetRoomslist")]
         [HttpGet]
         public IHttpActionResult GetRoomslist(string id)
         {
             Company company = db.Company.Find(id);
+            List<Order> order = db.Order.Where(x => x.companyseq == id).ToList();
+            //List<Evalution> evalutions = db.Evalution.Where(x => x.companyseq == id).ToList();
+
             var result = new
             {
                 company = new
@@ -139,9 +273,11 @@ namespace pet.Controllers
                     pettype_cat = check(company.Room.Where(y => y.pettype_cat == true).Count()),
                     pettype_dog = check(company.Room.Where(y => y.pettype_dog == true).Count()),
                     pettype_other = check(company.Room.Where(y => y.pettype_other == true).Count()),
-                    company.Room.Count
+                    company.Room.Count,
+                    evaluation = Utility.Evaluation(company.companyseq, "0"),
+                    evaluation_count = Utility.Evaluation(company.companyseq, "1")
                 },
-                roomlists = company.Room.Select(x => new
+                roomlists = company.Room.Where(x => x.state.Value == Convert.ToBoolean(Roomstate.已上架)).Select(x => new
                 {
                     x.roomseq,
                     x.companyseq,
@@ -162,7 +298,15 @@ namespace pet.Controllers
                     x.petsizee,
                     x.roomprice,
 
-                })
+                }),
+                evaluation = order.Where(x => x.Evalution.Count != 0).Select(x => new
+                {
+                    star = x.Evalution.Select(y => y.star).FirstOrDefault(),
+                    memo = x.Evalution.Select(y => y.memo).FirstOrDefault(),
+                    postdate = Convert.ToDateTime(x.Evalution.Select(y => y.postday).FirstOrDefault()).ToString("yyyy-MM-dd"),
+                    poster = GetMemberName(x.memberseq),
+                    avatar = GetMemberAvater(x.memberseq)
+                }).OrderByDescending(x => x.postdate)
             };
             //改寫法
             //List<RoomModel> roomModel = new List<RoomModel>();
@@ -293,8 +437,9 @@ namespace pet.Controllers
             List<date> remove = new List<date>();
             foreach (Order o in orders)
             {
-                remove.Add(new date() { 
-                    orderdates = o.orderdates.Value.ToString("yyyy-MM-dd"), 
+                remove.Add(new date()
+                {
+                    orderdates = o.orderdates.Value.ToString("yyyy-MM-dd"),
                     orderdatee = o.orderdatee.Value.ToString("yyyy-MM-dd")
                 });
             }
@@ -330,7 +475,9 @@ namespace pet.Controllers
                     company.midnight,
                     company.country,
                     company.area,
-                    company.address
+                    company.address,
+                    evaluation = Utility.Evaluation(company.companyseq, "0"),
+                    evaluation_count = Utility.Evaluation(company.companyseq, "1")
                 },
                 room = new
                 {
@@ -563,6 +710,16 @@ namespace pet.Controllers
                 return true;
             else
                 return false;
+        }
+        public string GetMemberName(string memberseq)
+        {
+            string name = db.Member.Find(memberseq).membername;
+            return name;
+        }
+        public string GetMemberAvater(string memberseq)
+        {
+            string avatar = db.Member.Find(memberseq).avatar;
+            return avatar;
         }
     }
 
