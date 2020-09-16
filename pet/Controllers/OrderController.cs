@@ -33,14 +33,14 @@ namespace pet.Controllers
             string temp = userseq.Substring(0, 1);
 
             //廠商
-            //if (temp == "C")
-            // {
+            if (temp == "C")
+             {
 
-            var linq = db.Order.Where(x => (temp == "C" ? x.companyseq == userseq : x.memberseq == userseq) && (state == 99 ? x.state != 0 : x.state == state));
+            var linq = db.Order.Where(x => x.companyseq == userseq && (state == 99 ? x.state != 0 : x.state == state));
             if(state == 2)
-                linq = linq.OrderBy(x => x.updateday).Skip((page - 1) * paged).Take(paged);
+                linq = linq.OrderByDescending(x => x.updateday).Skip((page - 1) * paged).Take(paged);
             else
-                linq = linq.OrderBy(x => x.orderseq).Skip((page - 1) * paged).Take(paged);
+                linq = linq.OrderByDescending(x => x.postday).Skip((page - 1) * paged).Take(paged);
 
             List<Order> order =linq.ToList();
             if (order == null)
@@ -51,7 +51,7 @@ namespace pet.Controllers
                 });
             }
 
-            pagination.total = db.Order.Where(x => (temp == "C" ? x.companyseq == userseq : x.memberseq == userseq) && (state == 99 ? x.state != 0 : x.state == state)).Count();
+            pagination.total = db.Order.Where(x =>  x.companyseq == userseq  && (state == 99 ? x.state != 0 : x.state == state)).Count();
             pagination.count = order.Count;
             pagination.per_page = paged;
             pagination.current_page = page;
@@ -67,44 +67,55 @@ namespace pet.Controllers
                     x.roomname,
                     setdate = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm"),
                     canceldate = Convert.ToDateTime(x.updateday).ToString("yyyy-MM-dd HH:mm"),
-                    x.state
+                    x.state,
+                    btn_Evalution = x.Evalution.Count != 0 && x.state == (int)Orderstate.已完成 ? true : false
                 }),
                 meta = pagination
             };
             return Ok(result);
-            //}
+            }
             //會員
-            //else
-            //{
-            //    List<Order> order = db.Order.Where(x => x.memberseq == userseq && x.state == state).OrderBy(x => x.orderseq).Skip((page - 1) * paged).Take(paged).ToList();
-            //    if (order == null)
-            //    {
-            //        return Ok(new
-            //        {
-            //            result = "查無資料"
-            //        });
-            //    }
+            else
+            {
+                var linq = db.Order.Where(x => x.memberseq == userseq && (state == 99 ? x.state != 0 : x.state == state));
+                if (state == 2)
+                    linq = linq.OrderByDescending(x => x.updateday).Skip((page - 1) * paged).Take(paged);
+                else
+                    linq = linq.OrderByDescending(x => x.postday).Skip((page - 1) * paged).Take(paged);
 
-            //    pagination.total = db.Order.Where(x => x.memberseq == userseq && x.state == state).Count();
-            //    pagination.count = order.Count;
-            //    pagination.per_page = paged;
-            //    pagination.current_page = page;
-            //    pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+                List<Order> order = linq.ToList();
+                if (order == null)
+                {
+                    return Ok(new
+                    {
+                        result = "查無資料"
+                    });
+                }
 
-            //   var result = new
-            //    {
-            //        order = order.Select(x => new
-            //        {
-            //            x.orderseq,
-            //            orderdates = Convert.ToDateTime(x.orderdates).ToString("yyyy-MM-dd"),
-            //            orderdatee = Convert.ToDateTime(x.orderdatee).ToString("yyyy-MM-dd"),
-            //            x.roomname,
-            //            x.state
-            //        }),
-            //        meta = pagination
-            //    };
-            //    return Ok(result);
-            //}
+                pagination.total = db.Order.Where(x => x.memberseq == userseq && (state == 99 ? x.state != 0 : x.state == state)).Count();
+                pagination.count = order.Count;
+                pagination.per_page = paged;
+                pagination.current_page = page;
+                pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+
+                var result = new
+                {
+                    order = order.Select(x => new
+                    {
+                        x.orderseq,
+                        orderdates = Convert.ToDateTime(x.orderdates).ToString("yyyy-MM-dd"),
+                        orderdatee = Convert.ToDateTime(x.orderdatee).ToString("yyyy-MM-dd"),
+                        x.roomname,
+                        setdate = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm"),
+                        canceldate = Convert.ToDateTime(x.updateday).ToString("yyyy-MM-dd HH:mm"),
+                        x.state,
+                        btn_Evalution = x.state == (int)Orderstate.已完成 ? true: false,
+                        btn_Evalution_readonly = x.Evalution.Count == 0 && x.state == (int)Orderstate.已完成 ? true : false
+                    }),
+                    meta = pagination
+                };
+                return Ok(result);
+            }
         }
         // GET: api/Order/Getorder?id //後台 單一訂單
         [JwtAuthFilter]
@@ -185,11 +196,16 @@ namespace pet.Controllers
                     },
                     orderprice = order.amt,//訂購總額
                     btn_cancel = 取消訂單鈕
+                },
+                cancel = new
+                {
+                   reason = order.OrderCancel.Select(x => x.reason).FirstOrDefault(),
+                   memo = order.OrderCancel.Select(x => x.memo).FirstOrDefault()
                 }
             };
             return Ok(result);
         }
-        // GET: api/Order/Getorder?id //後台 單一訂單
+        // GET: api/Order/Cancelorder 取消訂單
         [JwtAuthFilter]
         [Route("Cancelorder")]
         [HttpPost]
