@@ -172,6 +172,8 @@
     <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\PayController.cs" />
     <Compile Include="Controllers\RoomsController.cs" />
+    <Compile Include="Controllers\StarController.cs" />
+    <Compile Include="Controllers\TestController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
     <Compile Include="Filter\CustomAuthorization.cs" />
     <Compile Include="Filter\JwtAuthFilter.cs" />
@@ -237,6 +239,10 @@
     <Compile Include="Migrations\202009140300052_2020091402.cs" />
     <Compile Include="Migrations\202009140300052_2020091402.Designer.cs">
       <DependentUpon>202009140300052_2020091402.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202009141656274_202009140.cs" />
+    <Compile Include="Migrations\202009141656274_202009140.Designer.cs">
+      <DependentUpon>202009141656274_202009140.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Company.cs" />
@@ -401,6 +407,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202009140300052_2020091402.resx">
       <DependentUpon>202009140300052_2020091402.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009141656274_202009140.resx">
+      <DependentUpon>202009141656274_202009140.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using pet.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -1200,5 +1201,30 @@ namespace WebApplication1.Models
             return date;
         }
         #endregion
+
+        //計算評價平均 state = 0 回傳平均 1 回傳筆數
+        public static double Evaluation(string companyseq, string state = "0")
+        {
+            pet.Models.Model1 db = new pet.Models.Model1();
+            List<Order> orders = db.Order.Where(x => x.companyseq == companyseq).ToList();
+            double all = 0;
+            int count = 0;
+            foreach (Order o in orders)
+            {
+                if (o.Evalution.Select(x => x.star).FirstOrDefault() != null)
+                {
+                    all += (double)o.Evalution.Select(x => x.star).FirstOrDefault();
+                    count++;
+                }
+            }
+            if (state == "0")
+            {
+                if (count == 0)
+                    return 0;
+                return Math.Round((all / count), 2);
+            }
+            else
+                return count;
+        }
     }
 }
