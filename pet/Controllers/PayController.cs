@@ -39,7 +39,7 @@ namespace pet.Controllers
             MerchantID = "MS113701675",
             HashKey = "7VgBmKoiPRIvGtS26weblRPSoYfpQiOb",
             HashIV = "Cae6W3IT32n1OI8P",
-            ReturnURL = "http://pettrip.rocket-coding.com/",
+            ReturnURL = "http://pettrip.rocket-coding.com",
             NotifyURL = "http://pettrip.rocket-coding.com/api/Pay/Notify",
             CustomerURL = "http://yourWebsitUrl/Bank/SpgatewayCustomer",
             AuthUrl = "https://ccore.spgateway.com/MPG/mpg_gateway",

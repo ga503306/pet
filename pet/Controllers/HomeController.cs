@@ -11,8 +11,8 @@ namespace pet.Controllers
         public ActionResult Index()
         {
             ViewBag.Title = "Home Page";
-
-            return View();
+            return RedirectPermanent("http://pettrip.rocket-coding.com/index.html#/MemberBackstage");
+            //return View();
         }
     }
 }
