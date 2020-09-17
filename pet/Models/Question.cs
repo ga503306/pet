@@ -24,6 +24,9 @@ namespace pet.Models
         public string roomseq { get; set; }
 
         [StringLength(20)]
+        public string memberseq { get; set; }
+
+        [StringLength(20)]
         public string companyseq { get; set; }
 
         public string message { get; set; }

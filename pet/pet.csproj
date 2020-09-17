@@ -174,6 +174,7 @@
     <Compile Include="Controllers\MembersController.cs" />
     <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\PayController.cs" />
+    <Compile Include="Controllers\QaController.cs" />
     <Compile Include="Controllers\RoomsController.cs" />
     <Compile Include="Controllers\StarController.cs" />
     <Compile Include="Controllers\TestController.cs" />
@@ -258,6 +259,10 @@
     <Compile Include="Migrations\202009171316095_2020091703.cs" />
     <Compile Include="Migrations\202009171316095_2020091703.Designer.cs">
       <DependentUpon>202009171316095_2020091703.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202009171342041_2020091704.cs" />
+    <Compile Include="Migrations\202009171342041_2020091704.Designer.cs">
+      <DependentUpon>202009171342041_2020091704.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Company.cs" />
@@ -436,6 +441,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202009171316095_2020091703.resx">
       <DependentUpon>202009171316095_2020091703.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009171342041_2020091704.resx">
+      <DependentUpon>202009171342041_2020091704.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
