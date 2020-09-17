@@ -54,6 +54,9 @@
     <Reference Include="jose-jwt, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\jose-jwt.2.5.0\lib\net461\jose-jwt.dll</HintPath>
     </Reference>
+    <Reference Include="LinqKit, Version=1.1.17.0, Culture=neutral, PublicKeyToken=bc217f8844052a91, processorArchitecture=MSIL">
+      <HintPath>..\packages\LinqKit.1.1.17\lib\net45\LinqKit.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -244,6 +247,18 @@
     <Compile Include="Migrations\202009141656274_202009140.Designer.cs">
       <DependentUpon>202009141656274_202009140.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202009171300477_2020091701.cs" />
+    <Compile Include="Migrations\202009171300477_2020091701.Designer.cs">
+      <DependentUpon>202009171300477_2020091701.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202009171314268_2020091702.cs" />
+    <Compile Include="Migrations\202009171314268_2020091702.Designer.cs">
+      <DependentUpon>202009171314268_2020091702.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202009171316095_2020091703.cs" />
+    <Compile Include="Migrations\202009171316095_2020091703.Designer.cs">
+      <DependentUpon>202009171316095_2020091703.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\CompanyGetone.cs" />
@@ -274,6 +289,8 @@
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\OrderCancel.cs" />
     <Compile Include="Models\Pagination.cs" />
+    <Compile Include="Models\Question.cs" />
+    <Compile Include="Models\QuestionAnswer.cs" />
     <Compile Include="Models\Room.cs" />
     <Compile Include="Models\Utility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -410,6 +427,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202009141656274_202009140.resx">
       <DependentUpon>202009141656274_202009140.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009171300477_2020091701.resx">
+      <DependentUpon>202009171300477_2020091701.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009171314268_2020091702.resx">
+      <DependentUpon>202009171314268_2020091702.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009171316095_2020091703.resx">
+      <DependentUpon>202009171316095_2020091703.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
