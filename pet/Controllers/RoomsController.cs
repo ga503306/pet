@@ -268,7 +268,7 @@ namespace pet.Controllers
 
             //日期區間
             rooms_ = rooms_.Where(x => QueryDate(x.roomseq, dates, datee)).ToList();
-
+            //分頁
             var rooms_page = rooms_.Skip((page - 1) * paged).Take(paged).ToList();
 
             pagination.total = rooms_.Count();
@@ -282,6 +282,7 @@ namespace pet.Controllers
                 {
                     x.roomseq,
                     x.roomname,
+                    x.companyseq,
                     x.Company.companybrand,
                     x.pettype_cat,
                     x.pettype_dog,
@@ -472,8 +473,19 @@ namespace pet.Controllers
         // Get: api/Room/GetRoomsFront/5 //前台 點入廠商上架的產品
         [HttpGet]
         [Route("GetRoomsFront")]
-        public IHttpActionResult GetRoomsFront(string id)
+        public IHttpActionResult GetRoomsFront(string id, int page = 1, int paged = 6)
         {
+            //判斷登入者 為了問與答 如果未回覆只顯示登入者的提問
+            string user = "";
+            string userseq = "";
+            if (Request.Headers.Authorization != null)
+            {
+                string token = Request.Headers.Authorization.Parameter;
+                JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+                userseq = jwtAuthUtil.Getuserseq(token);
+                user = userseq.Substring(0, 1);
+            }
+
             Room room = db.Room.Find(id);
             Company company = db.Company.Find(room.companyseq);
 
@@ -506,20 +518,32 @@ namespace pet.Controllers
                 orderdates = DateTime.Now.AddMonths(3).ToString("yyyy-MM-dd"),
                 orderdatee = null
             });
-            //問與答
+            //問與答 未回覆 只有提問者看的到
             List<Question> questions = db.Question.Where(x => x.roomseq == id).ToList();
-            var qa = questions.Select(x => new
+            var qa = questions.Where(x => x.QuestionAnswer.Any() || (user == "M" ? x.memberseq == userseq : false)).Select((x, index) => new
             {
+                index = index + 1,
                 name = GetMemberName(x.memberseq),
                 question = x.message,
                 question_date = x.postday.Value.ToString("yyyy-MM-dd HH:mm:ss"),
                 answer = x.QuestionAnswer.Select(y => y.message).FirstOrDefault() is null ? "" : x.QuestionAnswer.Select(y => y.message).FirstOrDefault(),
                 answer_date = x.QuestionAnswer.Select(y => y.postday).FirstOrDefault() is null ? "" : x.QuestionAnswer.Select(y => y.postday).FirstOrDefault().Value.ToString("yyyy-MM-dd HH:mm:ss")
-            });
+            }).OrderByDescending(x => x.index);
+
+
+
+            Pagination pagination = new Pagination();
+            var qa_ = qa.Skip((page - 1) * paged).Take(paged).ToList();
+            pagination.total = qa.Count();
+            pagination.count = qa_.Count;
+            pagination.per_page = paged;
+            pagination.current_page = page;
+            pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
 
             var result = new
             {
-                qa,
+                qa = qa_,
+                meta = pagination,
                 remove,
                 //remove = orders.Select(x => new
                 //{

@@ -20,4 +20,9 @@ namespace pet.Models
         //已完成未評價 = 4,
         //已完成已評價 = 5
     }
+    public enum Qastate
+    {//1 未回覆 2 已回覆 null全部
+        未回覆 = 1,
+        已回覆 = 2
+    }
 }

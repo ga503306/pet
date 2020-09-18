@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Diagnostics.Eventing.Reader;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -89,42 +90,144 @@ namespace pet.Controllers
             });
         }
 
-        // Get: api/Qa/GetQuestion 廠商後台 拿問與答清單 state:
+        // Get: api/Qa/GetQuestion 後台 拿問與答清單 state:
         [JwtAuthFilter]
         [Route("GetQuestion")]
         [HttpGet]
-        public IHttpActionResult GetQuestion(string state = null)
+        public IHttpActionResult GetQuestion(string state = null, int page = 1, int paged = 6)
         {
             string token = Request.Headers.Authorization.Parameter;
             JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
             string userseq = jwtAuthUtil.Getuserseq(token);
 
             string user = userseq.Substring(0, 1);
+            //會員
             if (user == "M")
+            {
+                var questions = db.Question.Where(x => x.memberseq == userseq);
+                if (state == ((int)Qastate.未回覆).ToString())
+                    questions = questions.Where(x => !x.QuestionAnswer.Any());
+                else if (state == ((int)Qastate.已回覆).ToString())
+                    questions = questions.Where(x => x.QuestionAnswer.Any());
+
+                questions = questions.OrderByDescending(x => x.postday);
+                //分頁
+                Pagination pagination = new Pagination();
+                var questions_ = questions.Skip((page - 1) * paged).Take(paged).ToList();
+
+                pagination.total = questions.Count();
+                pagination.count = questions_.Count;
+                pagination.per_page = paged;
+                pagination.current_page = page;
+                pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+
+
+                return Ok(new
+                { 
+                    question = questions_.Select(x => new
+                    {
+                        x.queseq,
+                        membername = GetMemberName(x.memberseq),
+                        x.roomseq,
+                        roomname = GetRoomName(x.roomseq),
+                        x.companyseq,
+                        state = x.QuestionAnswer.Any() == true ? Qastate.已回覆.ToString() : Qastate.未回覆.ToString(),
+                        x.message,
+                        postday = x.postday.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                    }),
+                    meta = pagination
+                });
+            }
+            //廠商
+            else
+            {
+                var questions = db.Question.Where(x => x.companyseq == userseq);
+                if (state == ((int)Qastate.未回覆).ToString())
+                    questions = questions.Where(x => !x.QuestionAnswer.Any());
+                else if (state == ((int)Qastate.已回覆).ToString())
+                    questions = questions.Where(x => x.QuestionAnswer.Any());
+
+                questions = questions.OrderByDescending(x => x.postday);
+                //分頁
+                Pagination pagination = new Pagination();
+                var questions_ = questions.Skip((page - 1) * paged).Take(paged).ToList();
+
+                pagination.total = questions.Count();
+                pagination.count = questions_.Count;
+                pagination.per_page = paged;
+                pagination.current_page = page;
+                pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+
+
                 return Ok(new
                 {
-                    result = "會員無法查看"
+                    question = questions_.Select(x => new
+                    {
+                        x.queseq,
+                        membername = GetMemberName(x.memberseq),
+                        x.roomseq,
+                        roomname = GetRoomName(x.roomseq),
+                        x.companyseq,
+                        state = x.QuestionAnswer.Any() == true ? Qastate.已回覆.ToString() : Qastate.未回覆.ToString(),
+                        x.message,
+                        postday = x.postday.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                    }),
+                    meta = pagination
                 });
+            }
+        }
 
-            List<Question> questions = db.Question.Where(x => x.companyseq == userseq).ToList();
-            if (state == "未回覆")
-                questions = questions.Where(x => !x.QuestionAnswer.Any()).ToList();
+        // Get: api/Qa/GetQuestionDetail 後台 拿問與答清單 詳細 state:
+        [JwtAuthFilter]
+        [Route("GetQuestionDetail")]
+        [HttpGet]
+        public IHttpActionResult GetQuestionDetail(string queseq)
+        {
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
 
-            return Ok(new
+            string user = userseq.Substring(0, 1);
+            //會員 可合併 好像做同一件事
+            if (user == "M")
             {
-                question = questions.Select(x => new
+                var question = db.Question.Find(queseq);
+                
+                return Ok(new
                 {
-                    x.queseq,
-                    membername = GetMemberName(x.memberseq),
-                    x.message,
-                    x.postday
-                })
-            });
+                    question.queseq,
+                    name = GetMemberName(question.memberseq),
+                    question = question.message,
+                    question_date = question.postday.Value.ToString("yyyy-MM-dd HH:mm:ss"),
+                    answer = question.QuestionAnswer.Select(y => y.message).FirstOrDefault() is null ? "" : question.QuestionAnswer.Select(y => y.message).FirstOrDefault(),
+                    answer_date = question.QuestionAnswer.Select(y => y.postday).FirstOrDefault() is null ? "" : question.QuestionAnswer.Select(y => y.postday).FirstOrDefault().Value.ToString("yyyy-MM-dd HH:mm:ss")
+                });
+            }
+            //廠商
+            else
+            {
+                var question = db.Question.Find(queseq);
+                return Ok(new
+                {
+                    question.queseq,
+                    name = GetMemberName(question.memberseq),
+                    question = question.message,
+                    question_date = question.postday.Value.ToString("yyyy-MM-dd HH:mm:ss"),
+                    answer = question.QuestionAnswer.Select(y => y.message).FirstOrDefault() is null ? "" : question.QuestionAnswer.Select(y => y.message).FirstOrDefault(),
+                    answer_date = question.QuestionAnswer.Select(y => y.postday).FirstOrDefault() is null ? "" : question.QuestionAnswer.Select(y => y.postday).FirstOrDefault().Value.ToString("yyyy-MM-dd HH:mm:ss")
+
+                });
+            }
         }
 
         public string GetMemberName(string seq)
         {
             string name = db.Member.Find(seq).membername;
+            return name;
+        }
+        public string GetRoomName(string seq)
+        {
+            string name = db.Room.Find(seq).roomname;
             return name;
         }
     }
