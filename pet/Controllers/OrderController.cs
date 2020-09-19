@@ -34,45 +34,47 @@ namespace pet.Controllers
 
             //廠商
             if (temp == "C")
-             {
-
-            var linq = db.Order.Where(x => x.companyseq == userseq && (state == 99 ? x.state != 0 : x.state == state));
-            if(state == 2)
-                linq = linq.OrderByDescending(x => x.updateday).Skip((page - 1) * paged).Take(paged);
-            else
-                linq = linq.OrderByDescending(x => x.postday).Skip((page - 1) * paged).Take(paged);
-
-            List<Order> order =linq.ToList();
-            if (order == null)
             {
-                return Ok(new
-                {
-                    result = "查無資料"
-                });
-            }
 
-            pagination.total = db.Order.Where(x =>  x.companyseq == userseq  && (state == 99 ? x.state != 0 : x.state == state)).Count();
-            pagination.count = order.Count;
-            pagination.per_page = paged;
-            pagination.current_page = page;
-            pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+                var linq = db.Order.Where(x => x.companyseq == userseq && (state == 99 ? x.state != 0 : x.state == state));
+                if (state == 2)
+                    linq = linq.OrderByDescending(x => x.updateday).Skip((page - 1) * paged).Take(paged);
+                else
+                    linq = linq.OrderByDescending(x => x.postday).Skip((page - 1) * paged).Take(paged);
 
-            var result = new
-            {
-                order = order.Select(x => new
+                List<Order> order = linq.ToList();
+                if (order == null)
                 {
-                    x.orderseq,
-                    orderdates = Convert.ToDateTime(x.orderdates).ToString("yyyy-MM-dd"),
-                    orderdatee = Convert.ToDateTime(x.orderdatee).ToString("yyyy-MM-dd"),
-                    x.roomname,
-                    setdate = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm"),
-                    canceldate = Convert.ToDateTime(x.updateday).ToString("yyyy-MM-dd HH:mm"),
-                    x.state,
-                    btn_Evalution = x.Evalution.Count != 0 && x.state == (int)Orderstate.已完成 ? true : false
-                }),
-                meta = pagination
-            };
-            return Ok(result);
+                    return Ok(new
+                    {
+                        result = "查無資料"
+                    });
+                }
+
+                pagination.total = db.Order.Where(x => x.companyseq == userseq && (state == 99 ? x.state != 0 : x.state == state)).Count();
+                pagination.count = order.Count;
+                pagination.per_page = paged;
+                pagination.current_page = page;
+                pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+
+                var result = new
+                {
+                    order = order.Select(x => new
+                    {
+                        x.companyseq,
+                        x.roomseq,
+                        x.orderseq,
+                        orderdates = Convert.ToDateTime(x.orderdates).ToString("yyyy-MM-dd"),
+                        orderdatee = Convert.ToDateTime(x.orderdatee).ToString("yyyy-MM-dd"),
+                        x.roomname,
+                        setdate = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm"),
+                        canceldate = Convert.ToDateTime(x.updateday).ToString("yyyy-MM-dd HH:mm"),
+                        x.state,
+                        btn_Evalution = x.Evalution.Count != 0 && x.state == (int)Orderstate.已完成 ? true : false
+                    }),
+                    meta = pagination
+                };
+                return Ok(result);
             }
             //會員
             else
@@ -102,6 +104,8 @@ namespace pet.Controllers
                 {
                     order = order.Select(x => new
                     {
+                        x.companyseq,
+                        x.roomseq,
                         x.orderseq,
                         orderdates = Convert.ToDateTime(x.orderdates).ToString("yyyy-MM-dd"),
                         orderdatee = Convert.ToDateTime(x.orderdatee).ToString("yyyy-MM-dd"),
@@ -109,7 +113,7 @@ namespace pet.Controllers
                         setdate = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm"),
                         canceldate = Convert.ToDateTime(x.updateday).ToString("yyyy-MM-dd HH:mm"),
                         x.state,
-                        btn_Evalution = x.state == (int)Orderstate.已完成 ? true: false,
+                        btn_Evalution = x.state == (int)Orderstate.已完成 ? true : false,
                         btn_Evalution_readonly = x.Evalution.Count == 0 && x.state == (int)Orderstate.已完成 ? true : false
                     }),
                     meta = pagination
@@ -199,8 +203,8 @@ namespace pet.Controllers
                 },
                 cancel = new
                 {
-                   reason = order.OrderCancel.Select(x => x.reason).FirstOrDefault(),
-                   memo = order.OrderCancel.Select(x => x.memo).FirstOrDefault()
+                    reason = order.OrderCancel.Select(x => x.reason).FirstOrDefault(),
+                    memo = order.OrderCancel.Select(x => x.memo).FirstOrDefault()
                 }
             };
             return Ok(result);
