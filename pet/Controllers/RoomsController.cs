@@ -411,17 +411,27 @@ namespace pet.Controllers
         [JwtAuthFilter]
         [Route("GetRooms")]
         [HttpGet]
-        public IHttpActionResult GetRooms()
+        public IHttpActionResult GetRooms(int page = 1, int paged = 6)
         {
+            Pagination pagination = new Pagination();
+
             string token = Request.Headers.Authorization.Parameter;
             JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
             string userseq = jwtAuthUtil.Getuserseq(token);
 
 
             List<Room> room = db.Room.Where(x => x.companyseq == userseq && x.del_flag == "N").ToList();
+
+            var room_ = room.Skip((page - 1) * paged).Take(paged).ToList();
+            pagination.total = room.Count();
+            pagination.count = room_.Count;
+            pagination.per_page = paged;
+            pagination.current_page = page;
+            pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+
             var result = new
             {
-                room = room.Select(
+                room = room_.Select(
                     x => new
                     {
                         x.companyseq,
@@ -431,7 +441,8 @@ namespace pet.Controllers
                         x.pettype_dog,
                         x.pettype_other,
                         x.state
-                    })
+                    }),
+                    meta = pagination
             };
 
             // List<RoomBackendModel> roomModel = new List<RoomBackendModel>();
