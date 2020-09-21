@@ -39,6 +39,10 @@ namespace pet.Controllers
                                           : null;
                 if (postedFile != null)
                 {
+                    if(postedFile.ContentLength >= 2097152) { 
+                        error_message = "Uploadimg錯誤，請至伺服器log查詢錯誤訊息";
+                        throw new Exception("圖片大小不可超過 2 MB");
+                    }
                     string extension = postedFile.FileName.Split('.')[postedFile.FileName.Split('.').Length - 1];
                     if (String.Compare(extension, "jpg", true) == 0 || String.Compare(extension, "png", true) == 0)
                     {
@@ -58,7 +62,7 @@ namespace pet.Controllers
             }
             catch (Exception ex)
             {
-                Utility.log("Patchcompany", ex.ToString());
+                Utility.log("Uploadimg", ex.ToString());
                 return Ok(new
                 {
                     result = error_message
