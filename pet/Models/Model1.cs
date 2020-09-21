@@ -20,6 +20,7 @@ namespace pet.Models
         public virtual DbSet<OrderCancel> OrderCancel { get; set; }
         public virtual DbSet<Question> Question { get; set; }
         public virtual DbSet<QuestionAnswer> QuestionAnswer { get; set; }
+        public virtual DbSet<Notice> Notice { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
         }

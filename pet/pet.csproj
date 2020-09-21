@@ -173,6 +173,7 @@
     <Compile Include="Controllers\DefaultController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MembersController.cs" />
+    <Compile Include="Controllers\NoticeController.cs" />
     <Compile Include="Controllers\OrderController.cs" />
     <Compile Include="Controllers\PayController.cs" />
     <Compile Include="Controllers\QaController.cs" />
@@ -265,6 +266,14 @@
     <Compile Include="Migrations\202009171342041_2020091704.Designer.cs">
       <DependentUpon>202009171342041_2020091704.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202009210903080_2020092101.cs" />
+    <Compile Include="Migrations\202009210903080_2020092101.Designer.cs">
+      <DependentUpon>202009210903080_2020092101.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202009210904322_2020092102.cs" />
+    <Compile Include="Migrations\202009210904322_2020092102.Designer.cs">
+      <DependentUpon>202009210904322_2020092102.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Company.cs" />
     <Compile Include="Models\CompanyGetone.cs" />
@@ -292,6 +301,7 @@
     <Compile Include="Models\newebpay\SpgatewayTakeNumberDataModel.cs" />
     <Compile Include="Models\newebpay\StringExtension.cs" />
     <Compile Include="Models\newebpay\TradeInfo.cs" />
+    <Compile Include="Models\Notice.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\OrderCancel.cs" />
     <Compile Include="Models\Pagination.cs" />
@@ -445,6 +455,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202009171342041_2020091704.resx">
       <DependentUpon>202009171342041_2020091704.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009210903080_2020092101.resx">
+      <DependentUpon>202009210903080_2020092101.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202009210904322_2020092102.resx">
+      <DependentUpon>202009210904322_2020092102.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

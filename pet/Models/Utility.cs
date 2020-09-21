@@ -371,6 +371,7 @@ namespace WebApplication1.Models
                              + "/" + features
                              + "/" + seq
                              + "/" + fileName;
+            //GenerateThumbnailImage(fileName, upfile, savedName, "", 1080, 720);
             upfile.SaveAs(savedName);
             //return "http://pettrip.rocket-coding.com/Images/" + features + "/" + seq + "/" + fileName;
             return "http://" + HttpContext.Current.Request.Url.Host + "/Images/" + features + "/" + seq + "/" + fileName;
@@ -392,31 +393,31 @@ namespace WebApplication1.Models
         /// <param name="MaxWidth">指定要縮的寬度</param>
         /// <param name="MaxHight">指定要縮的高度</param>
         /// <remarks></remarks>
-        static public void GenerateThumbnailImage(string name, System.IO.Stream source, string target, string suffix, int MaxWidth, int MaxHight)
+        static public void GenerateThumbnailImage(string name, HttpPostedFile source, string target, string suffix, int MaxWidth, int MaxHight)
         {
-            System.Drawing.Image baseImage = System.Drawing.Image.FromStream(source);
+            System.Drawing.Image baseImage = Image.FromStream(source.InputStream, true, true);
             Single ratio = 0.0F; //存放縮圖比例
-            Single h = baseImage.Height; //圖像原尺寸高度
-            Single w = baseImage.Width;  //圖像原尺寸寬度
-            int ht; //圖像縮圖後高度
-            int wt;//圖像縮圖後寬度
-            //寬固定算高
-            ratio = MaxWidth / w; //計算寬度縮圖比例
-            if (MaxWidth < w)
-            {
-                ht = Convert.ToInt32(ratio * h);
-                wt = MaxWidth;
-
+            Single h = baseImage.Height;//圖像原尺寸高度
+            Single w = baseImage.Width;//圖像原尺寸寬度
+            int ht;//圖像縮圖後高度
+            int wt; //圖像縮圖後寬度
+            if (w > h)
+            {//圖像比較寬
+                ratio = MaxWidth / w;//計算寬度縮圖比例
+                if (MaxWidth < w)
+                {
+                    ht = Convert.ToInt32(ratio * h);
+                    wt = MaxWidth;
+                }
+                else
+                {
+                    ht = Convert.ToInt32(baseImage.Height);
+                    wt = Convert.ToInt32(baseImage.Width);
+                }
             }
             else
-            {
-                ht = Convert.ToInt32(baseImage.Height);
-                wt = Convert.ToInt32(baseImage.Width);
-
-            }
-            if (MaxHight > ht || MaxWidth >= w)
-            {
-                ratio = MaxHight / h; //計算寬度縮圖比例
+            {//比較高
+                ratio = MaxHight / h;//計算寬度縮圖比例
                 if (MaxHight < h)
                 {
                     ht = MaxHight;
@@ -428,12 +429,13 @@ namespace WebApplication1.Models
                     wt = Convert.ToInt32(baseImage.Width);
                 }
             }
-            string Newname = target + "\\" + suffix + name;
+            //string Newname = target + "\\" + suffix + name;
+            string Newname = target;
             System.Drawing.Bitmap img = new System.Drawing.Bitmap(wt, ht);
             System.Drawing.Graphics graphic = Graphics.FromImage(img);
             graphic.CompositingQuality = CompositingQuality.HighQuality;
             graphic.SmoothingMode = SmoothingMode.HighQuality;
-            graphic.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            graphic.InterpolationMode = InterpolationMode.Default;
             graphic.DrawImage(baseImage, 0, 0, wt, ht);
             img.Save(Newname);
 
