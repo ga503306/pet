@@ -18,11 +18,11 @@ namespace pet.Controllers
     {
         private Model1 db = new Model1();
 
-        // GET: api/Order/Getorder //後台 訂單列表
+        // GET: api/Order/Getorder //後台 訂單列表 orderseq 暫時沒用 roomname 同時會搜尋seq
         [JwtAuthFilter]
         [Route("Getorder")]
         [HttpGet]
-        public IHttpActionResult Getorder(int state = 99, int page = 1, int paged = 6, string field = null, string orderby = null)
+        public IHttpActionResult Getorder(int state = 99, int page = 1, int paged = 6, string orderseq = null, DateTime? datetimes = null, DateTime? datetimee = null, string roomname = null)
         {
             Pagination pagination = new Pagination();
             //拿已登入的流水
@@ -35,14 +35,24 @@ namespace pet.Controllers
             //廠商
             if (temp == "C")
             {
-
                 var linq = db.Order.Where(x => x.companyseq == userseq && (state == 99 ? x.state != 0 : x.state == state));
-                if (state == 2)
-                    linq = linq.OrderByDescending(x => x.updateday).Skip((page - 1) * paged).Take(paged);
-                else
-                    linq = linq.OrderByDescending(x => x.postday).Skip((page - 1) * paged).Take(paged);
+                var linq_ = linq;
+                //搜尋
+                if (orderseq != null)
+                    linq_ = linq_.Where(x => x.orderseq == orderseq);
+                if (datetimes.HasValue && datetimee.HasValue)
+                    linq_ = linq_.Where(x => x.orderdates <= datetimee.Value && datetimes.Value <= x.orderdatee);
+                if (roomname != null)
+                {
+                    linq_ = linq_.Where(x => x.orderseq.Contains(roomname) || x.roomname.Contains(roomname));
+                }
 
-                List<Order> order = linq.ToList();
+                if (state == 2)
+                    linq_ = linq_.OrderByDescending(x => x.updateday).Skip((page - 1) * paged).Take(paged);
+                else
+                    linq_ = linq_.OrderByDescending(x => x.postday).Skip((page - 1) * paged).Take(paged);
+
+                List<Order> order = linq_.ToList();
                 if (order == null)
                 {
                     return Ok(new
@@ -75,7 +85,7 @@ namespace pet.Controllers
                 //        break;
                 //}
 
-                pagination.total = db.Order.Where(x => x.companyseq == userseq && (state == 99 ? x.state != 0 : x.state == state)).Count();
+                pagination.total = linq_.Count();
                 pagination.count = order.Count;
                 pagination.per_page = paged;
                 pagination.current_page = page;
@@ -104,12 +114,24 @@ namespace pet.Controllers
             else
             {
                 var linq = db.Order.Where(x => x.memberseq == userseq && (state == 99 ? x.state != 0 : x.state == state));
-                if (state == 2)
-                    linq = linq.OrderByDescending(x => x.updateday).Skip((page - 1) * paged).Take(paged);
-                else
-                    linq = linq.OrderByDescending(x => x.postday).Skip((page - 1) * paged).Take(paged);
+                var linq_ = linq;
+                //搜尋
+                if (orderseq != null)
+                    linq_ = linq_.Where(x => x.orderseq == orderseq);
+                if (datetimes.HasValue && datetimee.HasValue)
+                    linq_ = linq_.Where(x => x.orderdates > datetimes.Value && x.orderdatee < datetimee.Value);
+                if (roomname != null)
+                {
+                    linq_ = linq_.Where(x => x.orderseq.Contains(roomname) || x.roomname.Contains(roomname));
+                }
 
-                List<Order> order = linq.ToList();
+
+                if (state == 2)
+                    linq_ = linq_.OrderByDescending(x => x.updateday).Skip((page - 1) * paged).Take(paged);
+                else
+                    linq_ = linq_.OrderByDescending(x => x.postday).Skip((page - 1) * paged).Take(paged);
+
+                var order = linq_.ToList();
                 if (order == null)
                 {
                     return Ok(new
@@ -118,7 +140,7 @@ namespace pet.Controllers
                     });
                 }
 
-                pagination.total = db.Order.Where(x => x.memberseq == userseq && (state == 99 ? x.state != 0 : x.state == state)).Count();
+                pagination.total = linq.Count();
                 pagination.count = order.Count;
                 pagination.per_page = paged;
                 pagination.current_page = page;
