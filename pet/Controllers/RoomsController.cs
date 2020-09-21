@@ -411,7 +411,7 @@ namespace pet.Controllers
         [JwtAuthFilter]
         [Route("GetRooms")]
         [HttpGet]
-        public IHttpActionResult GetRooms(int page = 1, int paged = 6)
+        public IHttpActionResult GetRooms(int page = 1, int paged = 6, string roomname = null)
         {
             Pagination pagination = new Pagination();
 
@@ -421,6 +421,9 @@ namespace pet.Controllers
 
 
             List<Room> room = db.Room.Where(x => x.companyseq == userseq && x.del_flag == "N").ToList();
+            //搜尋
+            if (roomname != null)
+                room = room.Where(x => x.roomname.Contains(roomname)).ToList();
 
             var room_ = room.Skip((page - 1) * paged).Take(paged).ToList();
             pagination.total = room.Count();
@@ -442,7 +445,7 @@ namespace pet.Controllers
                         x.pettype_other,
                         x.state
                     }),
-                    meta = pagination
+                meta = pagination
             };
 
             // List<RoomBackendModel> roomModel = new List<RoomBackendModel>();
@@ -730,6 +733,38 @@ namespace pet.Controllers
             });
         }
 
+        // Post: api/Room/Clone
+        [JwtAuthFilter]
+        [Route("Clone")]
+        [HttpPost]
+        public IHttpActionResult Clone(string id)
+        {
+            string error_message = "clone錯誤，請至伺服器log查詢錯誤訊息";
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
+
+            try
+            {
+                Room room = db.Room.AsNoTracking().FirstOrDefault(x=> x.roomseq == id);
+                room.roomname = room.roomname + "-copy";
+                room.state = Convert.ToBoolean(Roomstate.未上架);
+                db.Room.Add(room);
+                db.SaveChanges();
+            }
+            catch (Exception ex)//失敗
+            {   
+                Utility.log("PostRoomClone", ex.ToString());
+                return Ok(new
+                {
+                    result = error_message//修改失敗
+                });
+            }
+            return Ok(new
+            {
+                result = "複製成功"
+            });
+        }
         // Delete: api/Room/Delete
         [JwtAuthFilter]
         [Route("Delete")]
