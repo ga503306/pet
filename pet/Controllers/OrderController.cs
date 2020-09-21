@@ -22,7 +22,7 @@ namespace pet.Controllers
         [JwtAuthFilter]
         [Route("Getorder")]
         [HttpGet]
-        public IHttpActionResult Getorder(int state = 99, int page = 1, int paged = 6)
+        public IHttpActionResult Getorder(int state = 99, int page = 1, int paged = 6, string field = null, string orderby = null)
         {
             Pagination pagination = new Pagination();
             //拿已登入的流水
@@ -50,6 +50,30 @@ namespace pet.Controllers
                         result = "查無資料"
                     });
                 }
+
+                //switch (field)
+                //{
+                //    case "seq":
+                //        if (orderby == "ASC")
+                //            order = order.OrderBy(x => x.orderseq).ToList();
+                //        else if (orderby == "DESC")
+                //            order = order.OrderByDescending(x => x.orderseq).ToList();
+                //        break;
+                //    case "date":
+                //        if (orderby == "ASC")
+                //            order = order.OrderBy(x => x.orderdates).ToList();
+                //        else if (orderby == "DESC")
+                //            order = order.OrderByDescending(x => x.orderdates).ToList();
+                //        break;
+                //    case "room":
+                //        if (orderby == "ASC")
+                //            order = order.OrderBy(x => x.roomname).ToList();
+                //        else if (orderby == "DESC")
+                //            order = order.OrderByDescending(x => x.roomname).ToList();
+                //        break;
+                //    default:
+                //        break;
+                //}
 
                 pagination.total = db.Order.Where(x => x.companyseq == userseq && (state == 99 ? x.state != 0 : x.state == state)).Count();
                 pagination.count = order.Count;
