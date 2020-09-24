@@ -1231,7 +1231,7 @@ namespace WebApplication1.Models
         }
 
         //signalR_notice 發信者,收信者,內容,類型noticetype
-        public static void signalR_notice(string fromseq, string toseq, string seq, string text, string type)
+        public static void signalR_notice(string fromseq, string toseq, string seq, string text, Noticetype type)
         {
             pet.Models.Model1 db = new pet.Models.Model1();
             Notice notice = new Notice();
@@ -1240,6 +1240,8 @@ namespace WebApplication1.Models
             notice.seq = seq;
             notice.state = Convert.ToBoolean(Noticestate.未讀);
             notice.text = text;
+            notice.postday = DateTime.Now;
+            notice.type = (int)type;
 
             db.Notice.Add(notice);
             db.SaveChanges();
