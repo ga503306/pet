@@ -24,6 +24,10 @@ namespace pet.Models
 
         public bool? state { get; set; }
 
+        public int type { get; set; }
+
+        public string seq { get; set; }
+
         [StringLength(20)]
         public string postseq { get; set; }
 

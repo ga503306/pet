@@ -1,6 +1,7 @@
 ﻿using Microsoft.Ajax.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using pet.Controllers;
 using pet.Models;
 using System;
 using System.Collections.Generic;
@@ -1227,6 +1228,21 @@ namespace WebApplication1.Models
             }
             else
                 return count;
+        }
+
+        //signalR_notice 發信者,收信者,內容,類型noticetype
+        public static void signalR_notice(string fromseq, string toseq, string seq, string text, string type)
+        {
+            pet.Models.Model1 db = new pet.Models.Model1();
+            Notice notice = new Notice();
+            notice.fromseq = fromseq;
+            notice.toseq = toseq;
+            notice.seq = seq;
+            notice.state = Convert.ToBoolean(Noticestate.未讀);
+            notice.text = text;
+
+            db.Notice.Add(notice);
+            db.SaveChanges();
         }
     }
 }

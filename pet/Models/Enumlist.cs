@@ -25,4 +25,16 @@ namespace pet.Models
         未回覆 = 1,
         已回覆 = 2
     }
+    public enum Noticestate
+    {// 0未讀 1已讀 
+        未讀 = 0,
+        已讀 = 1
+    }
+
+    public enum Noticetype
+    {// 
+        問通知 = 0,
+        答通知 = 1,
+        下單通知 = 2
+    }
 }
