@@ -21,6 +21,7 @@ namespace pet.Models
         public virtual DbSet<Question> Question { get; set; }
         public virtual DbSet<QuestionAnswer> QuestionAnswer { get; set; }
         public virtual DbSet<Notice> Notice { get; set; }
+        public virtual DbSet<Signalr> Signalr { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
         }
