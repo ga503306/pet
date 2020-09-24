@@ -324,7 +324,7 @@ namespace pet.Controllers
                     pettype_cat = check(company.Room.Where(y => y.pettype_cat == true && y.del_flag == "N").Count()),
                     pettype_dog = check(company.Room.Where(y => y.pettype_dog == true && y.del_flag == "N").Count()),
                     pettype_other = check(company.Room.Where(y => y.pettype_other == true && y.del_flag == "N").Count()),
-                    count = company.Room.Where(y =>y.state == Convert.ToBoolean(Roomstate.已上架) && y.del_flag == "N" ).Count(),
+                    count = company.Room.Where(y => y.state == Convert.ToBoolean(Roomstate.已上架) && y.del_flag == "N").Count(),
                     evaluation = Utility.Evaluation(company.companyseq, "0"),
                     evaluation_count = Utility.Evaluation(company.companyseq, "1")
                 },
@@ -483,7 +483,7 @@ namespace pet.Controllers
             return Ok(room);
         }
 
-        // Get: api/Room/GetRoomsFront/5 //前台 點入廠商上架的產品
+        // Get: api/Room/C/5 //前台 點入廠商上架的產品
         [HttpGet]
         [Route("GetRoomsFront")]
         public IHttpActionResult GetRoomsFront(string id, int page = 1, int paged = 6)
@@ -494,9 +494,12 @@ namespace pet.Controllers
             if (Request.Headers.Authorization != null)
             {
                 string token = Request.Headers.Authorization.Parameter;
-                JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
-                userseq = jwtAuthUtil.Getuserseq(token);
-                user = userseq.Substring(0, 1);
+                if (token != "" && token != null)
+                {
+                    JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+                    userseq = jwtAuthUtil.Getuserseq(token);
+                    user = userseq.Substring(0, 1);
+                }
             }
 
             Room room = db.Room.Find(id);
@@ -745,14 +748,14 @@ namespace pet.Controllers
 
             try
             {
-                Room room = db.Room.AsNoTracking().FirstOrDefault(x=> x.roomseq == id);
+                Room room = db.Room.AsNoTracking().FirstOrDefault(x => x.roomseq == id);
                 room.roomname = room.roomname + "-copy";
                 room.state = Convert.ToBoolean(Roomstate.未上架);
                 db.Room.Add(room);
                 db.SaveChanges();
             }
             catch (Exception ex)//失敗
-            {   
+            {
                 Utility.log("PostRoomClone", ex.ToString());
                 return Ok(new
                 {
