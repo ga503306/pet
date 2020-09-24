@@ -47,7 +47,6 @@ namespace pet.Controllers
             //    pettype_dog = true;
             //if (companies.Select(x => new { pettype_other = x.Room.Where(y => y.pettype_other == true) }).Count() > 0)
             //    pettype_other = true;
-
             List<Company> companies = db.Company.Where(x => x.del_flag == "N" && x.Room.Count != 0).OrderBy(x => x.companyseq).ToList();
 
             var company = companies.Select(x => new
@@ -59,12 +58,12 @@ namespace pet.Controllers
                 x.country,
                 x.area,
                 x.address,
-                pettype_cat = check(x.Room.Where(y => y.pettype_cat == true).Count()),
-                pettype_dog = check(x.Room.Where(y => y.pettype_dog == true).Count()),
-                pettype_other = check(x.Room.Where(y => y.pettype_other == true).Count()),
-                roomprice_min = x.Room.Min(y => y.roomprice) is null ? 0 : x.Room.Min(y => y.roomprice),
-                roomprice_max = x.Room.Max(y => y.roomprice) is null ? 0 : x.Room.Max(y => y.roomprice),
-                rooms = x.Room.Where(y => y.state == Convert.ToBoolean(Roomstate.已上架)).Count(),
+                pettype_cat = check(x.Room.Where(y => y.pettype_cat == true && y.del_flag == "N").Count()),
+                pettype_dog = check(x.Room.Where(y => y.pettype_dog == true && y.del_flag == "N").Count()),
+                pettype_other = check(x.Room.Where(y => y.pettype_other == true && y.del_flag == "N").Count()),
+                roomprice_min = x.Room.Where(y => y.del_flag == "N").Min(y => y.roomprice) is null ? 0 : x.Room.Where(y => y.del_flag == "N").Min(y => y.roomprice),
+                roomprice_max = x.Room.Where(y => y.del_flag == "N").Max(y => y.roomprice) is null ? 0 : x.Room.Where(y => y.del_flag == "N").Max(y => y.roomprice),
+                rooms = x.Room.Where(y => y.state == Convert.ToBoolean(Roomstate.已上架) && y.del_flag == "N").Count(),
                 //rooms = x.Room.Where(y => (chk_cat != "null" ? true : y.pettype_cat == true) && (chk_dog != "null" ? true : y.pettype_dog == true) && (chk_other != "null" ? true : y.pettype_other == true)).Count(),
                 //rooms = check_pet(chk_cat, chk_dog, chk_other, x.Room),
                 evaluation = Utility.Evaluation(x.companyseq, "0"),
@@ -322,14 +321,14 @@ namespace pet.Controllers
                     company.afternoon,
                     company.night,
                     company.midnight,
-                    pettype_cat = check(company.Room.Where(y => y.pettype_cat == true).Count()),
-                    pettype_dog = check(company.Room.Where(y => y.pettype_dog == true).Count()),
-                    pettype_other = check(company.Room.Where(y => y.pettype_other == true).Count()),
-                    company.Room.Count,
+                    pettype_cat = check(company.Room.Where(y => y.pettype_cat == true && y.del_flag == "N").Count()),
+                    pettype_dog = check(company.Room.Where(y => y.pettype_dog == true && y.del_flag == "N").Count()),
+                    pettype_other = check(company.Room.Where(y => y.pettype_other == true && y.del_flag == "N").Count()),
+                    count = company.Room.Where(y =>y.state == Convert.ToBoolean(Roomstate.已上架) && y.del_flag == "N" ).Count(),
                     evaluation = Utility.Evaluation(company.companyseq, "0"),
                     evaluation_count = Utility.Evaluation(company.companyseq, "1")
                 },
-                roomlists = company.Room.Where(x => x.state.Value == Convert.ToBoolean(Roomstate.已上架)).Select(x => new
+                roomlists = company.Room.Where(x => x.state.Value == Convert.ToBoolean(Roomstate.已上架) && x.del_flag == "N").Select(x => new
                 {
                     x.roomseq,
                     x.companyseq,
