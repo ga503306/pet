@@ -14,5 +14,11 @@ namespace pet.Controllers
             return RedirectPermanent("http://pettrip.rocket-coding.com/index.html#/MemberBackstage");
             //return View();
         }
+        public ActionResult TestView()
+        {
+            ViewBag.Title = "Home Page";
+            //return RedirectPermanent("http://pettrip.rocket-coding.com/index.html#/MemberBackstage");
+            return View();
+        }
     }
 }
