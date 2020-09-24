@@ -16,11 +16,14 @@ using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web.Security;
 using Microsoft.Ajax.Utilities;
+using Microsoft.AspNet.SignalR;
+using Microsoft.Owin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using pet.Fillter;
 using pet.Filter;
+using pet.Hubs;
 using pet.Models;
 using pet.Security;
 using WebApplication1.Models;
@@ -56,6 +59,16 @@ namespace pet.Controllers
             db.Question.Add(question);
             db.SaveChanges();
 
+            //signalr即時通知
+            Utility.signalR_notice(question.memberseq, question.companyseq, question.queseq, "", Noticetype.問通知);
+            var context = GlobalHost.ConnectionManager.GetHubContext<DefaultHub>();
+            var connectid = db.Signalr.Where(x => x.whoseq == question.companyseq).Select(x => x.connectid).ToList();//需要通知的廠商signalr connectid
+            foreach (var c in connectid)
+            {
+                context.Clients.Client(c).Get();
+            }
+            //context.Clients.All.Get();
+
             return Ok(new
             {
                 result = "發問成功"
@@ -84,6 +97,18 @@ namespace pet.Controllers
             db.QuestionAnswer.Add(questionAnswer);
             db.SaveChanges();
 
+            //var questisonAnswer_ = db.QuestionAnswer.Where(x => x.Question.queseq == questionAnswer.queseq).FirstOrDefault();
+            var question = db.Question.Where(x => x.queseq == questionAnswer.queseq).ToList();
+            QuestionAnswer questionAnswer_ = db.QuestionAnswer.Find(questionAnswer.ansseq);
+
+            //signalr即時通知
+            Utility.signalR_notice(questionAnswer_.companyseq, questionAnswer_.Question.memberseq, questionAnswer_.ansseq, "", Noticetype.答通知);
+            var context = GlobalHost.ConnectionManager.GetHubContext<DefaultHub>();
+            var connectid = db.Signalr.Where(x => x.whoseq == questionAnswer_.Question.memberseq).Select(x => x.connectid).ToList();//需要通知的會員signalr connectid
+            foreach (var c in connectid)
+            {
+                context.Clients.Client(c).Get();
+            }
             return Ok(new
             {
                 result = "回覆成功"
@@ -123,7 +148,7 @@ namespace pet.Controllers
 
 
                 return Ok(new
-                { 
+                {
                     question = questions_.Select(x => new
                     {
                         x.queseq,
@@ -192,7 +217,7 @@ namespace pet.Controllers
             if (user == "M")
             {
                 var question = db.Question.Find(queseq);
-                
+
                 return Ok(new
                 {
                     question.queseq,

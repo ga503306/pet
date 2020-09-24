@@ -14,11 +14,13 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web.Security;
+using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using pet.Fillter;
 using pet.Filter;
+using pet.Hubs;
 using pet.Models;
 using pet.Security;
 using Spgateway.Models;
@@ -288,6 +290,15 @@ namespace pet.Controllers
                     order.state = 1;
                     db.Entry(order).State = EntityState.Modified;
                     db.SaveChanges();
+
+                    //signalr即時通知
+                    Utility.signalR_notice(order.memberseq, order.companyseq, order.orderseq, "", Noticetype.下單通知);
+                    var context = GlobalHost.ConnectionManager.GetHubContext<DefaultHub>();
+                    var connectid = db.Signalr.Where(x => x.whoseq == order.companyseq).Select(x => x.connectid).ToList();//需要通知的廠商signalr connectid
+                    foreach (var c in connectid)
+                    {
+                        context.Clients.Client(c).Get();
+                    }
                 }
                 else//付款失敗
                 {
