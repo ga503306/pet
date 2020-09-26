@@ -1,5 +1,6 @@
 namespace pet.Models
 {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
@@ -40,6 +41,7 @@ namespace pet.Models
 
         public DateTime? updateday { get; set; }
 
+        [JsonIgnore]
         public virtual Order Order { get; set; }
     }
 }
