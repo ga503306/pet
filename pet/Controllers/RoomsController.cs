@@ -555,6 +555,9 @@ namespace pet.Controllers
             pagination.per_page = paged;
             pagination.current_page = page;
             pagination.total_page = Convert.ToInt16(Math.Ceiling(Convert.ToDouble(pagination.total) / Convert.ToDouble(pagination.per_page)));
+            
+            //是否上架
+            bool isopen = room.state.Value;
 
             var result = new
             {
@@ -581,7 +584,8 @@ namespace pet.Controllers
                     company.area,
                     company.address,
                     evaluation = Utility.Evaluation(company.companyseq, "0"),
-                    evaluation_count = Utility.Evaluation(company.companyseq, "1")
+                    evaluation_count = Utility.Evaluation(company.companyseq, "1"),
+                    isopen
                 },
                 room = new
                 {
