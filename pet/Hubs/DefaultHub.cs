@@ -22,10 +22,10 @@ namespace pet.Hubs
         }
         public override System.Threading.Tasks.Task OnDisconnected(bool stopCalled)
         {
-            var item = db.Signalr.FirstOrDefault(x => x.connectid == Context.ConnectionId);
+            var item = db.Signalr.Where(x => x.connectid == Context.ConnectionId).ToList();
             if (item != null)
             {
-                db.Signalr.Remove(item);
+                db.Signalr.RemoveRange(item);
                 db.SaveChanges();
             }
 
