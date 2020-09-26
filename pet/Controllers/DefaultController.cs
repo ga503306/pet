@@ -65,7 +65,7 @@ namespace pet.Controllers
                 toporders.AddRange(order);
             }
 
-           var toporders_ = toporders.GroupBy(x => x.roomseq).Select(x => new //算出房間有幾筆成功的訂單
+            var toporders_ = toporders.GroupBy(x => x.roomseq).Select(x => new //算出房間有幾筆成功的訂單
             {
                 x.Key,
                 roomseq = x.Select(y => y.roomseq).FirstOrDefault(),
@@ -79,14 +79,19 @@ namespace pet.Controllers
                 Room room = rooms.Where(x => x.roomseq == t.roomseq).FirstOrDefault(); //把正確的房間資料抓回
                 toprooms.Add(room);
             }
+            //評價 五星 日期排序 新的前五筆 
+            var evalution = db.Evalution.Where(x => x.star == 5 && x.memo != "").OrderByDescending(x => x.postday).Take(5).ToList();
 
             //首頁 房間總數
             int roomcount = rooms.Count();
             //首頁 廠商總數
             int compantcount = companies.Count();
+            //首頁 成交訂單總數
+            int ordercount = db.Order.Where(x => x.state == (int)Orderstate.已付款 || x.state == (int)Orderstate.已完成).Count();
 
             var result = new
             {
+                evalution,
                 company,
                 rooms = toprooms.Select(x => new
                 {
@@ -104,7 +109,8 @@ namespace pet.Controllers
                     x.img1
                 }),
                 roomcount,
-                compantcount
+                compantcount,
+                ordercount
             };
 
             return Ok(result);
