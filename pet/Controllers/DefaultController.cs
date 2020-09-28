@@ -87,7 +87,7 @@ namespace pet.Controllers
             //首頁 廠商總數
             int compantcount = companies.Count();
             //首頁 成交訂單總數
-            int ordercount = db.Order.Where(x => x.state == (int)Orderstate.已付款 || x.state == (int)Orderstate.已完成).Count();
+            int ordercount = db.Order.Where(x => x.state == (int)Orderstate.已完成).Count();
 
             var result = new
             {
