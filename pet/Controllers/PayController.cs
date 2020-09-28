@@ -291,14 +291,42 @@ namespace pet.Controllers
                     db.Entry(order).State = EntityState.Modified;
                     db.SaveChanges();
 
-                    //signalr即時通知
+                    //signalr即時通知 改寫法
                     Utility.signalR_notice(order.memberseq, order.companyseq, order.orderseq, "", Noticetype.下單通知);
                     var context = GlobalHost.ConnectionManager.GetHubContext<DefaultHub>();
                     var connectid = db.Signalr.Where(x => x.whoseq == order.companyseq).Select(x => x.connectid).ToList();//需要通知的廠商signalr connectid
+                    var notices = db.Notice.Where(x => x.toseq == order.companyseq).ToList();
+                    var unread = notices.Where(x => x.state == Convert.ToBoolean(Noticestate.未讀)).Count();
+
+                    List<Notice> notices_ = notices.OrderBy(x => x.state).ThenByDescending(x => x.postday).Take(10).ToList();
+                    var result = new
+                    {
+                        unread = unread,
+                        notices = notices_.Select(
+                           x => new
+                           {
+                               x.noticeseq,
+                               x.fromseq,
+                               x.toseq,
+                               state = Enum.Parse(typeof(Noticestate), x.state.GetHashCode().ToString()).ToString(),
+                               x.text,
+                               type = Enum.Parse(typeof(Noticetype), x.type.ToString()).ToString(),
+                               time = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm")
+                           })
+                    };
                     foreach (var c in connectid)
                     {
-                        context.Clients.Client(c).Get();
+                        context.Clients.Client(c).Get(result);
                     }
+
+                    ////signalr即時通知
+                    //Utility.signalR_notice(order.memberseq, order.companyseq, order.orderseq, "", Noticetype.下單通知);
+                    //var context = GlobalHost.ConnectionManager.GetHubContext<DefaultHub>();
+                    //var connectid = db.Signalr.Where(x => x.whoseq == order.companyseq).Select(x => x.connectid).ToList();//需要通知的廠商signalr connectid
+                    //foreach (var c in connectid)
+                    //{
+                    //    context.Clients.Client(c).Get();
+                    //}
                 }
                 else//付款失敗
                 {

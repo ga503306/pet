@@ -63,9 +63,28 @@ namespace pet.Controllers
             Utility.signalR_notice(question.memberseq, question.companyseq, question.queseq, "", Noticetype.問通知);
             var context = GlobalHost.ConnectionManager.GetHubContext<DefaultHub>();
             var connectid = db.Signalr.Where(x => x.whoseq == question.companyseq).Select(x => x.connectid).ToList();//需要通知的廠商signalr connectid
+            var unread = db.Notice.Where(x => x.toseq == question.companyseq).ToList();
+            unread = unread.Where(x => x.state == Convert.ToBoolean(Noticestate.未讀)).ToList();
+
+            List<Notice> notices = db.Notice.Where(x => x.toseq == question.companyseq).OrderBy(x => x.state).ThenByDescending(x => x.postday).Take(10).ToList();
+            var result = new
+            {
+                unread = unread.Count(),
+                notices = notices.Select(
+                   x => new
+                   {
+                       x.noticeseq,
+                       x.fromseq,
+                       x.toseq,
+                       state = Enum.Parse(typeof(Noticestate), x.state.GetHashCode().ToString()).ToString(),
+                       x.text,
+                       type = Enum.Parse(typeof(Noticetype), x.type.ToString()).ToString(),
+                       time = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm")
+                   })
+            };
             foreach (var c in connectid)
             {
-                context.Clients.Client(c).Get();
+                context.Clients.Client(c).Get(result);
             }
             //context.Clients.All.Get();
 
@@ -105,9 +124,28 @@ namespace pet.Controllers
             Utility.signalR_notice(questionAnswer_.companyseq, questionAnswer_.Question.memberseq, questionAnswer_.ansseq, "", Noticetype.答通知);
             var context = GlobalHost.ConnectionManager.GetHubContext<DefaultHub>();
             var connectid = db.Signalr.Where(x => x.whoseq == questionAnswer_.Question.memberseq).Select(x => x.connectid).ToList();//需要通知的會員signalr connectid
+
+            var unread = db.Notice.Where(x => x.toseq == questionAnswer_.Question.memberseq).ToList();
+            unread = unread.Where(x => x.state == Convert.ToBoolean(Noticestate.未讀)).ToList();
+            List<Notice> notices = db.Notice.Where(x => x.toseq == questionAnswer_.Question.memberseq).OrderBy(x => x.state).ThenByDescending(x => x.postday).Take(10).ToList();
+            var result = new
+            {
+                unread = unread.Count(),
+                notices = notices.Select(
+                   x => new
+                   {
+                       x.noticeseq,
+                       x.fromseq,
+                       x.toseq,
+                       state = Enum.Parse(typeof(Noticestate), x.state.GetHashCode().ToString()).ToString(),
+                       x.text,
+                       type = Enum.Parse(typeof(Noticetype), x.type.ToString()).ToString(),
+                       time = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm")
+                   })
+            };
             foreach (var c in connectid)
             {
-                context.Clients.Client(c).Get();
+                context.Clients.Client(c).Get(result);
             }
             return Ok(new
             {
