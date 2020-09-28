@@ -57,6 +57,7 @@ namespace pet.Controllers
                 notices = notices.Select(
                    x => new
                    {
+                       x.noticeseq,
                        x.fromseq,
                        x.toseq,
                        state = Enum.Parse(typeof(Noticestate), x.state.GetHashCode().ToString()).ToString(),
@@ -88,6 +89,23 @@ namespace pet.Controllers
                 n.state = Convert.ToBoolean(Noticestate.已讀);
                 db.Entry(n).State = EntityState.Modified;
             }
+            db.SaveChanges();
+
+            return Ok(new
+            {
+                result = "已讀"
+            });
+        }
+
+        // Post: api/Notice/Readone
+        [JwtAuthFilter]
+        [Route("Readone")]
+        [HttpPost]
+        public IHttpActionResult Readone(Notice notice)
+        {
+            Notice notice_ = db.Notice.Find(notice.noticeseq);
+            notice_.state = Convert.ToBoolean(Noticestate.已讀);
+            db.Entry(notice_).State = EntityState.Modified;
             db.SaveChanges();
 
             return Ok(new
