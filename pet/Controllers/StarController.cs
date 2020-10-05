@@ -70,17 +70,17 @@ namespace pet.Controllers
             Order order = db.Order.Find(id);
             //Evalution evalution = db.Evalution.Where(x => x.orderseq == id).FirstOrDefault();
             Company company = db.Company.Find(order.companyseq);
-
+            Member member = db.Member.Find(order.memberseq);
             if (user == "C")
             {
-                Member member = db.Member.Find(order.memberseq);
+              
                 return Ok(new
                 {
                     company = new
                     {
                         company.companyname,
                         company.companybrand,
-                        company.avatar,
+                        member.avatar,
                         company.bannerimg,
                         order.roomname,
                         order.orderseq,
