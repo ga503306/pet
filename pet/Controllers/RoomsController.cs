@@ -66,7 +66,7 @@ namespace pet.Controllers
                 rooms = x.Room.Where(y => y.state == Convert.ToBoolean(Roomstate.已上架) && y.del_flag == "N").Count(),
                 //rooms = x.Room.Where(y => (chk_cat != "null" ? true : y.pettype_cat == true) && (chk_dog != "null" ? true : y.pettype_dog == true) && (chk_other != "null" ? true : y.pettype_other == true)).Count(),
                 //rooms = check_pet(chk_cat, chk_dog, chk_other, x.Room),
-                evaluation = Utility.Evaluation(x.companyseq, "0"),
+                evaluation = Utility.Evaluation(x.companyseq, "0"),//迴圈 資料庫
                 evaluation_count = Utility.Evaluation(x.companyseq, "1")
             }).AsQueryable();
 
@@ -355,7 +355,7 @@ namespace pet.Controllers
                     star = x.Evalution.Select(y => y.star).FirstOrDefault(),
                     memo = x.Evalution.Select(y => y.memo).FirstOrDefault(),
                     postdate = Convert.ToDateTime(x.Evalution.Select(y => y.postday).FirstOrDefault()).ToString("yyyy-MM-dd"),
-                    poster = GetMemberName(x.memberseq),
+                    poster = GetMemberName(x.memberseq),//關聯
                     avatar = GetMemberAvater(x.memberseq)
                 }).OrderByDescending(x => x.postdate)
             };
@@ -502,7 +502,7 @@ namespace pet.Controllers
                 }
             }
 
-            Room room = db.Room.Find(id);
+            Room room = db.Room.Include(x => x.Company).Where( x => x.roomseq == id).FirstOrDefault();
             Company company = db.Company.Find(room.companyseq);
 
             List<Order> orders = db.Order.Where(x => x.state == (int)Orderstate.已付款 && x.roomseq == id).ToList();//已下的訂單
