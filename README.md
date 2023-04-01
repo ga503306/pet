@@ -15,5 +15,8 @@ MS SQL2019
 ## PPT
 [PPT](https://docs.google.com/presentation/d/1DqkZGFqZ3sz0CpfoRUSDru8Y_NHKVRuc/edit#slide=id.p1)
 
+## 2023/3/31
+改用綠界金流測試環境
+
 ## 調整中
 config vue historymode
