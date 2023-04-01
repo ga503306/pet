@@ -9,11 +9,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web.Security;
+using ECPay.Payment.Integration;
 using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -41,24 +43,22 @@ namespace pet.Controllers
             MerchantID = "MS113701675",
             HashKey = "7VgBmKoiPRIvGtS26weblRPSoYfpQiOb",
             HashIV = "Cae6W3IT32n1OI8P",
-            ReturnURL = "http://pettrip.rocket-coding.com",
-            NotifyURL = "http://pettrip.rocket-coding.com/api/Pay/Notify",
+            ReturnURL = "https://pettrip.ddns.net#/MemberBackstage",
+            NotifyURL = "https://pettrip.ddns.net/api/Pay/Notify",
             CustomerURL = "http://yourWebsitUrl/Bank/SpgatewayCustomer",
-            AuthUrl = "https://ccore.spgateway.com/MPG/mpg_gateway",
+            AuthUrl = "https://ccore.newebpay.com/MPG/mpg_gateway",
             CloseUrl = "https://core.newebpay.com/API/CreditCard/Close"
         };
 
-        // Post: api/pay/Getinfo
-        [JwtAuthFilter]
-        [Route("Getinfo")]
+        [Route("ECPayGetinfo")]
         [HttpPost]
-        public IHttpActionResult SpgatewayPayBill(Order order)
+        public IHttpActionResult ECPayBill(Order order)
         {
             string error_message = "下單錯誤，請至伺服器log查詢錯誤訊息";
             string token = Request.Headers.Authorization.Parameter;
             JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
             string userseq = jwtAuthUtil.Getuserseq(token);
-            
+
             //後端 判斷日期有沒有被下訂
             List<Order> orders = db.Order.Where(x => x.state == (int)Orderstate.已付款 && x.roomseq == order.roomseq).ToList();//已下的訂單
             List<string> date = new List<string>();//排除的日期
@@ -145,7 +145,303 @@ namespace pet.Controllers
 
             db.SaveChanges();
 
-            string version = "1.5";
+            //以下綠界程式
+            // 目前時間轉換 +08:00, 防止傳入時間或Server時間時區不同造成錯誤
+            //DateTimeOffset taipeiStandardTimeOffset = DateTimeOffset.Now.ToOffset(new TimeSpan(8, 0, 0));
+
+            var ecpayOrder = new Dictionary<string, string>
+        {
+            //特店交易編號
+            { "MerchantTradeNo",  order.orderseq},
+
+            //特店交易時間 yyyy/MM/dd HH:mm:ss
+            { "MerchantTradeDate",  DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")},
+
+            //交易金額
+            { "TotalAmount",  order.amt.Value.ToString()},
+
+            //交易描述
+            { "TradeDesc",  "pertrip交易訂單" + order.orderseq},
+
+            //商品名稱
+            { "ItemName",  "pertrip交易訂單"},
+
+            //允許繳費有效天數(付款方式為 ATM 時，需設定此值)
+            { "ExpireDate",  "3"},
+
+            //自訂名稱欄位1
+            { "CustomField1",  ""},
+
+            //自訂名稱欄位2
+            { "CustomField2",  ""},
+
+            //自訂名稱欄位3
+            { "CustomField3",  ""},
+
+            //自訂名稱欄位4
+            { "CustomField4",  ""},
+
+            //綠界回傳付款資訊的至 此URLDDDD
+            { "ReturnURL",  $"https://pettrip.ddns.net/api/Pay/EcpayNotify"},
+            //{ "ReturnURL",  $"https://ea5d-36-238-15-202.ngrok.io/api/Pay/EcpayNotify"},
+
+            //使用者於綠界 付款完成後，綠界將會轉址至 此URL
+            //這邊有兩種做法 一種 OrderResultURL 留空 靠 ClientBackURL 他會顯示出一個 返回商店按鈕 這個按鈕是 返回導向網址 而不是POST
+            //另一種做法是 OrderResultURL 導向 這裡文件是用POST方法 所以要先回到後端接API 之後發送導頁RedirectPermanent方法 給前端 而不是直接導到前端的頁面
+             { "OrderResultURL", $"https://pettrip.ddns.net/Home/RedirectMemberBackstage"},
+            //{ "OrderResultURL", $""},
+            //{ "ClientBackURL",  $"https://pettrip.ddns.net/index.html#/MemberBackstage"},
+             
+            //付款方式為 ATM 時，當使用者於綠界操作結束時，綠界回傳 虛擬帳號資訊至 此URL
+            { "PaymentInfoURL",  $"https://pettrip.ddns.com"},
+
+            //付款方式為 ATM 時，當使用者於綠界操作結束時，綠界會轉址至 此URL。
+            { "ClientRedirectURL",  $"https://pettrip.ddns.com"},
+
+            //特店編號， 2000132 測試綠界編號
+            { "MerchantID",  "2000132"},
+
+            //忽略付款方式
+            { "IgnorePayment",  "GooglePay#WebATM#CVS#BARCODE"},
+
+            //交易類型 固定填入 aio
+            { "PaymentType",  "aio"},
+
+            //選擇預設付款方式 固定填入 ALL
+            { "ChoosePayment",  "ALL"},
+
+            //CheckMacValue 加密類型 固定填入 1 (SHA256)
+            { "EncryptType",  "1"},
+        };
+
+            //檢查碼
+            ecpayOrder["CheckMacValue"] = GetCheckMacValue(ecpayOrder);
+
+            return Ok(ecpayOrder);
+        }
+
+        /// <summary>
+        /// 取得 檢查碼
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        private string GetCheckMacValue(Dictionary<string, string> order)
+        {
+            var param = order.Keys.OrderBy(x => x).Select(key => key + "=" + order[key]).ToList();
+
+            var checkValue = string.Join("&", param);
+
+            //測試用的 HashKey
+            var hashKey = "5294y06JbISpM5x9";
+
+            //測試用的 HashIV
+            var HashIV = "v77hoKGq4kWxNNIS";
+
+            checkValue = $"HashKey={hashKey}" + "&" + checkValue + $"&HashIV={HashIV}";
+
+            checkValue = HttpUtility.UrlEncode(checkValue).ToLower();
+
+            checkValue = GetSHA256(checkValue);
+
+            return checkValue.ToUpper();
+        }
+        /// <summary>
+        /// SHA256 編碼
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private string GetSHA256(string value)
+        {
+            var result = new System.Text.StringBuilder();
+            var sha256 = System.Security.Cryptography.SHA256Managed.Create();
+            var bts = System.Text.Encoding.UTF8.GetBytes(value);
+            var hash = sha256.ComputeHash(bts);
+
+            for (int i = 0; i < hash.Length; i++)
+            {
+                result.Append(hash[i].ToString("X2"));
+            }
+
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// 綠界回傳 付款資訊
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
+        [Route("EcpayNotify")]
+        [HttpPost]
+        public HttpResponseMessage EcpayNotify(OrderResultModel Result)
+        {
+            Utility.log("EcpayNotify :", "on");
+            if (Result.RtnCode == 1 && Result.RtnMsg.ToUpper() != "PAID")
+            {
+                Utility.log("EcpayNotify :", "sucess");
+                Order order = db.Order.Find(Result.MerchantTradeNo);
+                order.state = 1;
+                db.Entry(order).State = EntityState.Modified;
+                db.SaveChanges();
+
+                //signalr即時通知 改寫法
+                Utility.signalR_notice(order.memberseq, order.companyseq, order.orderseq, "", Noticetype.下單通知);
+                var context = GlobalHost.ConnectionManager.GetHubContext<DefaultHub>();
+                var connectid = db.Signalr.Where(x => x.whoseq == order.companyseq).Select(x => x.connectid).ToList();//需要通知的廠商signalr connectid
+                var notices = db.Notice.Where(x => x.toseq == order.companyseq).ToList();
+                var unread = notices.Where(x => x.state == Convert.ToBoolean(Noticestate.未讀)).Count();
+
+                List<Notice> notices_ = notices.OrderBy(x => x.state).ThenByDescending(x => x.postday).Take(10).ToList();
+                var result = new
+                {
+                    unread = unread,
+                    notices = notices_.Select(
+                       x => new
+                       {
+                           x.noticeseq,
+                           x.fromseq,
+                           x.toseq,
+                           state = Enum.Parse(typeof(Noticestate), x.state.GetHashCode().ToString()).ToString(),
+                           x.text,
+                           type = Enum.Parse(typeof(Noticetype), x.type.ToString()).ToString(),
+                           time = Convert.ToDateTime(x.postday).ToString("yyyy-MM-dd HH:mm")
+                       })
+                };
+                foreach (var c in connectid)
+                {
+                    context.Clients.Client(c).Get(result);
+                }
+
+                return ResponseOK();
+            }
+            else
+            {
+                Utility.log("EcpayNotify :", "fail");
+                return ResponseError();
+            }
+        }
+
+        /// <summary>
+        /// 回傳給 綠界 失敗
+        /// </summary>
+        /// <returns></returns>
+        private HttpResponseMessage ResponseError()
+        {
+            var response = new HttpResponseMessage();
+            response.Content = new StringContent("0|Error");
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("text/html");
+            return response;
+        }
+
+        /// <summary>
+        /// 回傳給 綠界 成功
+        /// </summary>
+        /// <returns></returns>
+        private HttpResponseMessage ResponseOK()
+        {
+            var response = new HttpResponseMessage();
+            response.Content = new StringContent("1|OK");
+            response.Content.Headers.ContentType = new MediaTypeHeaderValue("text/html");
+            return response;
+        }
+
+        // Post: api/pay/Getinfo
+        [JwtAuthFilter]
+        [Route("Getinfo")]
+        [HttpPost]
+        public IHttpActionResult SpgatewayPayBill(Order order)
+        {
+            string error_message = "下單錯誤，請至伺服器log查詢錯誤訊息";
+            string token = Request.Headers.Authorization.Parameter;
+            JwtAuthUtil jwtAuthUtil = new JwtAuthUtil();
+            string userseq = jwtAuthUtil.Getuserseq(token);
+
+            //後端 判斷日期有沒有被下訂
+            List<Order> orders = db.Order.Where(x => x.state == (int)Orderstate.已付款 && x.roomseq == order.roomseq).ToList();//已下的訂單
+            List<string> date = new List<string>();//排除的日期
+            foreach (Order o in orders)
+            {
+                date.AddRange(Utility.Data(o.orderdates.Value, o.orderdatee.Value));
+            }
+            if (date.Contains(order.orderdates.Value.ToString("yyyy-MM-dd")) ||
+                date.Contains(order.orderdatee.Value.ToString("yyyy-MM-dd")))
+            {
+                error_message = "日期已被下訂";
+                return Ok(new
+                {
+                    result = error_message
+                });
+            }
+
+            Room room = db.Room.Find(order.roomseq);
+            Company company = db.Company.Find(room.companyseq);
+            order.companyseq = room.companyseq;
+            order.companyname = company.companybrand;
+            order.roomname = room.roomname;
+            order.memberseq = userseq; //登入者 流水號
+            order.country = company.country;
+            order.area = company.area;
+            order.address = company.address;
+            //order.name 前端傳進
+            //order.tel 前端傳進
+            //order.pettype 
+            //order.petsize
+            //數量前端傳 金額room表拿
+            //order.petamount
+            order.roomprice = room.roomprice;
+            order.roomamount_amt = room.roomamount_amt;
+            //是否有勾 前端傳  重新回room表拿金額
+            order.medicine_infeed_amt = room.medicine_infeed_amt;
+            order.medicine_paste_amt = room.medicine_paste_amt;
+            order.medicine_pill_amt = room.medicine_pill_amt;
+            order.bath_amt = room.bath_amt;
+            order.hair_amt = room.hair_amt;
+            order.nails_amt = room.nails_amt;
+            order.state = 0; //未付款
+            //orderdatee orderdates
+            #region 金額// 處理金額
+            TimeSpan s = new TimeSpan(order.orderdatee.Value.Ticks - order.orderdates.Value.Ticks);
+            int amt = 0;
+            amt += (room.roomprice.Value + room.roomamount_amt.Value * (order.petamount.Value - 1)) * (s.Days + 1); //每間金額 * 天數  //隻 * 每隻金額
+
+            if (order.medicine_infeed.Value) //判斷藥
+                amt = amt + room.medicine_infeed_amt.Value * (order.petamount.Value);
+            if (order.medicine_paste.Value)
+                amt = amt + room.medicine_paste_amt.Value * (order.petamount.Value);
+            if (order.medicine_pill.Value)
+                amt = amt + room.medicine_pill_amt.Value * (order.petamount.Value);
+
+            if (order.bath.Value) //判斷加購
+                amt = amt + room.bath_amt.Value * (order.petamount.Value);
+            if (order.hair.Value)
+                amt = amt + room.hair_amt.Value * (order.petamount.Value);
+            if (order.nails.Value)
+                amt = amt + room.nails_amt.Value * (order.petamount.Value);
+
+            //amt += room.roomprice.Value * (s.Days+1); 
+            //amt += order.petamount.Value * room.roomamount_amt.Value; //隻 * 每隻金額
+
+            #endregion
+
+            order.amt = amt;
+            order.postday = DateTime.Now;
+            order.del_flag = "N";
+            db.Order.Add(order);
+
+            ModelState.Clear();
+            Validate(order);
+
+            if (!ModelState.IsValid)
+            {
+                Utility.log("下單 pay/Getinfo", ModelState.ToString());
+                return Ok(new
+                {
+                    result = error_message
+                });
+            }
+
+            db.SaveChanges();
+
+            string version = "2.0";
 
             // 目前時間轉換 +08:00, 防止傳入時間或Server時間時區不同造成錯誤
             DateTimeOffset taipeiStandardTimeOffset = DateTimeOffset.Now.ToOffset(new TimeSpan(8, 0, 0));
