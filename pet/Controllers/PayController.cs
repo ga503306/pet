@@ -16,6 +16,7 @@ using System.Web.Http;
 using System.Web.Http.Description;
 using System.Web.Security;
 using ECPay.Payment.Integration;
+using ECPayInfo.Models;
 using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -38,6 +39,9 @@ namespace pet.Controllers
     {
         private Model1 db = new Model1();
 
+        /// <summary>
+        /// 藍新
+        /// </summary>
         private BankInfoModel _bankInfoModel = new BankInfoModel
         {
             MerchantID = "MS113701675",
@@ -50,6 +54,29 @@ namespace pet.Controllers
             CloseUrl = "https://core.newebpay.com/API/CreditCard/Close"
         };
 
+        /// <summary>
+        /// 綠界設定model 先拆出測試會調整的部分
+        /// </summary>
+        private ECPayInfoModel ECPayInfoModel = new ECPayInfoModel
+        {
+            MerchantID = "2000132",
+            HashKey = "5294y06JbISpM5x9",
+            HashIV = "v77hoKGq4kWxNNIS",
+            ReturnURL = "https://pettrip.ddns.net/api/Pay/EcpayNotify",
+            OrderResultURL = "https://pettrip.ddns.net/Home/RedirectMemberBackstage",
+            ClientBackURL = "https://pettrip.ddns.net/index.html#/MemberBackstage",
+            PaymentInfoURL = "https://pettrip.ddns.net",
+            ClientRedirectURL = "https://pettrip.ddns.net",
+        };
+
+        private readonly ECPayHelper ECPayHelper;
+
+        public PayController()
+        {
+            ECPayHelper = new ECPayHelper();
+        }
+
+        #region 綠界
         [Route("ECPayGetinfo")]
         [HttpPost]
         public IHttpActionResult ECPayBill(Order order)
@@ -145,124 +172,10 @@ namespace pet.Controllers
 
             db.SaveChanges();
 
-            //以下綠界程式
-            // 目前時間轉換 +08:00, 防止傳入時間或Server時間時區不同造成錯誤
-            //DateTimeOffset taipeiStandardTimeOffset = DateTimeOffset.Now.ToOffset(new TimeSpan(8, 0, 0));
-
-            var ecpayOrder = new Dictionary<string, string>
-        {
-            //特店交易編號
-            { "MerchantTradeNo",  order.orderseq},
-
-            //特店交易時間 yyyy/MM/dd HH:mm:ss
-            { "MerchantTradeDate",  DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")},
-
-            //交易金額
-            { "TotalAmount",  order.amt.Value.ToString()},
-
-            //交易描述
-            { "TradeDesc",  "pertrip交易訂單" + order.orderseq},
-
-            //商品名稱
-            { "ItemName",  "pertrip交易訂單"},
-
-            //允許繳費有效天數(付款方式為 ATM 時，需設定此值)
-            { "ExpireDate",  "3"},
-
-            //自訂名稱欄位1
-            { "CustomField1",  ""},
-
-            //自訂名稱欄位2
-            { "CustomField2",  ""},
-
-            //自訂名稱欄位3
-            { "CustomField3",  ""},
-
-            //自訂名稱欄位4
-            { "CustomField4",  ""},
-
-            //綠界回傳付款資訊的至 此URLDDDD
-            { "ReturnURL",  $"https://pettrip.ddns.net/api/Pay/EcpayNotify"},
-            //{ "ReturnURL",  $"https://ea5d-36-238-15-202.ngrok.io/api/Pay/EcpayNotify"},
-
-            //使用者於綠界 付款完成後，綠界將會轉址至 此URL
-            //這邊有兩種做法 一種 OrderResultURL 留空 靠 ClientBackURL 他會顯示出一個 返回商店按鈕 這個按鈕是 返回導向網址 而不是POST
-            //另一種做法是 OrderResultURL 導向 這裡文件是用POST方法 所以要先回到後端接API 之後發送導頁RedirectPermanent方法 給前端 而不是直接導到前端的頁面
-             { "OrderResultURL", $"https://pettrip.ddns.net/Home/RedirectMemberBackstage"},
-            //{ "OrderResultURL", $""},
-            //{ "ClientBackURL",  $"https://pettrip.ddns.net/index.html#/MemberBackstage"},
-             
-            //付款方式為 ATM 時，當使用者於綠界操作結束時，綠界回傳 虛擬帳號資訊至 此URL
-            { "PaymentInfoURL",  $"https://pettrip.ddns.com"},
-
-            //付款方式為 ATM 時，當使用者於綠界操作結束時，綠界會轉址至 此URL。
-            { "ClientRedirectURL",  $"https://pettrip.ddns.com"},
-
-            //特店編號， 2000132 測試綠界編號
-            { "MerchantID",  "2000132"},
-
-            //忽略付款方式
-            { "IgnorePayment",  "GooglePay#WebATM#CVS#BARCODE"},
-
-            //交易類型 固定填入 aio
-            { "PaymentType",  "aio"},
-
-            //選擇預設付款方式 固定填入 ALL
-            { "ChoosePayment",  "ALL"},
-
-            //CheckMacValue 加密類型 固定填入 1 (SHA256)
-            { "EncryptType",  "1"},
-        };
-
-            //檢查碼
-            ecpayOrder["CheckMacValue"] = GetCheckMacValue(ecpayOrder);
+            //轉換成 Dictionary<string, string> 綠界資料
+            var ecpayOrder = ECPayHelper.ConvertToECPayOrder(ECPayInfoModel, order);
 
             return Ok(ecpayOrder);
-        }
-
-        /// <summary>
-        /// 取得 檢查碼
-        /// </summary>
-        /// <param name="order"></param>
-        /// <returns></returns>
-        private string GetCheckMacValue(Dictionary<string, string> order)
-        {
-            var param = order.Keys.OrderBy(x => x).Select(key => key + "=" + order[key]).ToList();
-
-            var checkValue = string.Join("&", param);
-
-            //測試用的 HashKey
-            var hashKey = "5294y06JbISpM5x9";
-
-            //測試用的 HashIV
-            var HashIV = "v77hoKGq4kWxNNIS";
-
-            checkValue = $"HashKey={hashKey}" + "&" + checkValue + $"&HashIV={HashIV}";
-
-            checkValue = HttpUtility.UrlEncode(checkValue).ToLower();
-
-            checkValue = GetSHA256(checkValue);
-
-            return checkValue.ToUpper();
-        }
-        /// <summary>
-        /// SHA256 編碼
-        /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        private string GetSHA256(string value)
-        {
-            var result = new System.Text.StringBuilder();
-            var sha256 = System.Security.Cryptography.SHA256Managed.Create();
-            var bts = System.Text.Encoding.UTF8.GetBytes(value);
-            var hash = sha256.ComputeHash(bts);
-
-            for (int i = 0; i < hash.Length; i++)
-            {
-                result.Append(hash[i].ToString("X2"));
-            }
-
-            return result.ToString();
         }
 
         /// <summary>
@@ -343,7 +256,9 @@ namespace pet.Controllers
             response.Content.Headers.ContentType = new MediaTypeHeaderValue("text/html");
             return response;
         }
+        #endregion
 
+        #region 藍新
         // Post: api/pay/Getinfo
         [JwtAuthFilter]
         [Route("Getinfo")]
@@ -636,7 +551,8 @@ namespace pet.Controllers
             }
 
             return Ok();
-        }
+        } 
+        #endregion
     }
 
 }

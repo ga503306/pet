@@ -332,6 +332,7 @@
     <Compile Include="Models\MemberGetone.cs" />
     <Compile Include="Models\MemberRegisterModel.cs" />
     <Compile Include="Models\Model1.cs" />
+    <Compile Include="Models\newebpay\EcPayInfoModel.cs" />
     <Compile Include="Models\newebpay\Atom.cs" />
     <Compile Include="Models\newebpay\Atom.T.cs" />
     <Compile Include="Models\newebpay\BankInfoModel.cs" />
